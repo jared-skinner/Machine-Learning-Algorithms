@@ -6,3 +6,7 @@ In this repository I am implementing several standard machine learning algorithm
 * matplotlib
 * tensorflow
 * pandas
+
+My understanding of these algorithms is coming from the Coursera course on machine learning by Andrew Ng.  I highly recommend this class.
+
+
