@@ -28,7 +28,7 @@ class TrainingModel:
         self.cost = 0
 
 
-    @static
+    @staticmethod
     def sigmoid(X, theta):
         '''
         vectorized version of the sigmoid function
@@ -36,7 +36,7 @@ class TrainingModel:
         return 1 / ( 1 + np.exp(- np.matmul( theta, X)))
 
 
-    @static
+    @staticmethod
     def sigmoid_prime(X, theta):
         '''
         vectorized version of the derivative of the sigmoid function
@@ -85,7 +85,7 @@ class TrainingModel:
         self.test_y = self.y[cross_test_split:]
 
 
-    def digit_to_ones_hot(self, size, digit):
+    def digit_to_one_hot(self, size, digit):
         '''
         for a given integer, return an array of size <size> where the <digit>
         index has a value of 1 and all other values are 0.  This is used during
@@ -96,6 +96,9 @@ class TrainingModel:
         return array
 
 
-    def ones_hot_to_digit(self, array):
-        pass
+    def one_hot_to_digit(self, array):
+        hot_index = [index for index, item in enumerate(array) if item == 1]
+        assert len(hot_index) != 0
+
+        return hot_index[0]
 
