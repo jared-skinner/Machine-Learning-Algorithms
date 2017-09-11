@@ -8,8 +8,10 @@ class TrainingModel:
     '''
 
     def __init__(X, y, learning_rate, number_of_epochs):
-        # each feature needs an output!
+        assert X.shape[0] > 0
         assert X.shape[0] == y.shape
+        assert number_of_epochs > 0
+        assert learning_rate > 0
 
         self.X = X
         self.y = y
