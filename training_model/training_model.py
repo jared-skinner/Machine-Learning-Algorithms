@@ -8,6 +8,9 @@ class TrainingModel:
     '''
 
     def __init__(X, y, learning_rate, number_of_epochs):
+        # each feature needs an output!
+        assert X.shape[0] == y.shape
+
         self.X = X
         self.y = y
         self.learning_rate = learning_rate
@@ -40,7 +43,11 @@ class TrainingModel:
 
 
     def shuffle_data(self):
-        pass
+        '''
+        shuffle X and y data for better training
+        '''
+        p = np.random.permutation(X.shape[0])
+        return X[p], y[p]
 
 
     def split_data(self, percent_training, percent_cross_validation, percent_test):
