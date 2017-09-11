@@ -27,7 +27,7 @@ learning_rate = .0000000000001
 number_of_epochs = 100000
 
 # training weights
-W = (np.random.rand(7) - .5) * 10
+W = (np.random.rand(X_features.shape[0]) - .5) * 10
 
 for epoch in range(number_of_epochs):
     # create predictions

@@ -57,7 +57,7 @@ class TrainingModel:
         numpy.random.shuffle(self.y)
 
 
-    def split_data(self, percent_training, percent_cross_validation, percent_test):
+    def split_data(self, percent_training = 0, percent_cross_validation = 0, percent_test = 0):
         '''
         split data into chunks for training, cross validation and testing
         '''
