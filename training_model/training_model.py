@@ -85,6 +85,7 @@ class TrainingModel:
         self.test_y = self.y[cross_test_split:]
 
 
+    @staticmethod
     def digit_to_one_hot(self, size, digit):
         '''
         for a given integer, return an array of size <size> where the <digit>
@@ -96,6 +97,7 @@ class TrainingModel:
         return array
 
 
+    @staticmethod
     def one_hot_to_digit(self, array):
         hot_index = [index for index, item in enumerate(array) if item == 1]
         assert len(hot_index) != 0
