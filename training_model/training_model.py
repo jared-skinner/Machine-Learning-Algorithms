@@ -48,8 +48,13 @@ class TrainingModel:
         '''
         shuffle X and y data for better training
         '''
-        p = np.random.permutation(X.shape[0])
-        return X[p], y[p]
+        rng_state = numpy.random.get_state()
+        numpy.random.shuffle(self.X)
+
+        # reset state so shuffle produces the same permutation the second time
+        # around
+        numpy.random.set_state(rng_state)
+        numpy.random.shuffle(self.y)
 
 
     def split_data(self, percent_training, percent_cross_validation, percent_test):
