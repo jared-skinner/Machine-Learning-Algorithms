@@ -1,39 +1,84 @@
-# implementation of linear regression using numpy
 import numpy as np
 import matplotlib.pyplot as plt
+from os import environ
 
-# create random feature set values between 0 and 10
-# sorting so values form a line-ish thing.  It is 
-# contrived, but it makes a good example...
-X = np.sort(np.random.rand(30)) * 10
-y = np.sort(np.random.rand(30)) * 7
+def train_model(X, y, number_of_epochs, learning_rate):
+    # training weights
+    W = (np.random.rand(X.shape[0]) - .5) * 10
 
-# plot our feature set
-plt.plot(X, y, 'ro')
-plt.show()
+    for epoch in range(number_of_epochs):
+        # create predictions
+        y_approx = np.matmul(W, X)
 
-# set learning rate (the size of steps we want to take when performing gradient descent).
-# I started with a learning rate of 0.1, but that was way too large...
-learning_rate = 0.001
+        # calculate cost
+        cost = np.sum(1/2 * np.power(y - y_approx,2))
+            
+        # calculate gradient
+        grad = np.sum(-(y - y_approx) * X, axis=1)
 
-# initialize weights
-W = np.random.rand(2) * 10
+        # move weights
+        W = W - learning_rate * grad
+        
+        if (epoch + 1) % 6000 == 0 or epoch == 0:
+            print("Cost = %f" % cost)
 
-for epoch in range(1000):
-    # calculate cost
-    y_approx = W[0] * X + W[1]
-    cost = np.sum(np.power(1/2*(y - y_approx), 2))
- 
-    # calculate gradient
-    # partial wrt W[0] = -(y - (W[0]*X + W[1])) * X
-    # partial wrt W[1] = -(y - (W[0]*X + W[1]))
-    d_cost_d_w0 = np.sum(-(y - y_approx)*X)
-    d_cost_d_w1 = np.sum(-(y - y_approx))
-    grad = np.array([d_cost_d_w0, d_cost_d_w1])
-    W = W - learning_rate * grad
+            if 'DISPLAY' in environ.keys():
+                X_plot_vals = np.arange(0, 10, .001)
 
-    if (epoch + 1) % 250 == 0 or epoch == 0:
-        print("epoch: %d" % (epoch + 1), "\n cost: %f" % cost)
+                X_plot_powers = []
+                for i in range(0,7):
+                    x_pow = np.power(X_plot_vals, i)
+                    X_plot_powers.append(x_pow)
+
+                y_plot_vals = np.matmul(W, X_plot_powers)
+                plt.plot(X, y, 'ro')
+                plt.plot(X_plot_vals, y_plot_vals)
+                plt.show()
+        
+    print("==========================================================")
+    print("================== TRAINING COMPLETE =====================")
+    print("==========================================================")
+        
+    print("Weights: ")
+    print(W)
+    print("Cost: %f" % cost)  
+
+    return W
+
+
+def main():
+
+    # use this for testing the model
+
+    # define some dummy data
+    X = np.sort(np.random.rand(30)) * 10
+    noise = (np.sort(np.random.rand(30)) - .5) * 30
+    y = np.multiply(- .002 * np.power(X, 6) + .3 * np.power(X, 5) + .002 * np.power(X, 4) + .00000000000033 * X + 10, noise)
+
+    # we know from the dummy data that a 6th degree polynomial should model this
+    # well.  With that in mind, we will create a feature for each power of X: 0
+    # through 7.
+    X_features = []
+    for i in range(0, 7):
+        x_pow = np.power(X, i)
+        X_features.append(x_pow)
+
+    # here is our new features vector!
+    X_features = np.array(X_features)
+
+    if 'DISPLAY' in environ.keys():
+        # plot X and y to get an idea what we are looking at.
         plt.plot(X, y, 'ro')
-        plt.plot(X, y_approx)
         plt.show()
+
+    # learning rate and number of epochs.  TODO: figure out why the learning rate
+    # has to be so low to prevent divergence
+    learning_rate = .0000000000001
+    number_of_epochs = 100000
+
+    weights = train_model(X_features, y, number_of_epochs, learning_rate)
+
+if __name__ == "__main__":
+    main()
+
+
