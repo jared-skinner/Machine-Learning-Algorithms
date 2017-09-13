@@ -7,9 +7,9 @@ class TrainingModel:
     general class which specific models will inherit from
     '''
 
-    def __init__(X, y, learning_rate, number_of_epochs):
+    def __init__(self, X, y, learning_rate, number_of_epochs):
         assert X.shape[0] > 0
-        assert X.shape[0] == y.shape
+        assert X.shape[0] == y.shape[0]
         assert number_of_epochs > 0
         assert learning_rate > 0
 
@@ -24,6 +24,8 @@ class TrainingModel:
         # initialize gradient vector
         self.grad = np.zeros(10)# TODO: shape of X)
 
+        self.weights = np.zeros(X.shape[0])
+
         # initialize cost
         self.cost = 0
 
@@ -33,8 +35,7 @@ class TrainingModel:
         '''
         vectorized version of the sigmoid function
         '''
-        return 1 / ( 1 + np.exp(- np.matmul( theta, X)))
-
+        return 1 / ( 1 + np.exp(- theta * X))
 
     @staticmethod
     def sigmoid_prime(X, theta):
@@ -48,13 +49,13 @@ class TrainingModel:
         '''
         shuffle X and y data for better training
         '''
-        rng_state = numpy.random.get_state()
-        numpy.random.shuffle(self.X)
+        rng_state = np.random.get_state()
+        np.random.shuffle(self.X)
 
         # reset state so shuffle produces the same permutation the second time
         # around
-        numpy.random.set_state(rng_state)
-        numpy.random.shuffle(self.y)
+        np.random.set_state(rng_state)
+        np.random.shuffle(self.y)
 
 
     def split_data(self, percent_training = 0, percent_cross_validation = 0, percent_test = 0):
@@ -72,8 +73,8 @@ class TrainingModel:
         percent_training = percent_training / percent_sum
         percent_cross_validation = percent_cross_validation / percent_sum
 
-        train_cross_split = percent_test * self.X.shape[0]
-        cross_test_split = train_cross_split + percent_cross_validation * self.X.shape[0]
+        train_cross_split = int(percent_test * self.X.shape[0])
+        cross_test_split = int(train_cross_split + percent_cross_validation * self.X.shape[0])
 
         self.train_x = self.X[:train_cross_split]
         self.train_y = self.y[:train_cross_split]

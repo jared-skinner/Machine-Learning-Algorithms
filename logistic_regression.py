@@ -1,26 +1,26 @@
 import numpy as np
 import matplotlib as pyplot
-from ../training_model/training_model import TrainingModel
+from training_model import TrainingModel
 
 class LogisticRegression(TrainingModel):
-    def __init__(X, y, learning_rate, number_of_epochs):
+    def __init__(self, X, y, learning_rate, number_of_epochs):
         # TODO: initialize based on superclass
         super(LogisticRegression, self).__init__(X, y, learning_rate, number_of_epochs)
 
 
-    def calculate_cost(self, X_vals, Y_vals, W):
+    def calculate_cost(self):
         '''
         compute the cost of the logistic algorithm with weights <W>
         '''
-        self.cost = - np.sum(self.y * np.log(self.sigmoid(X, self.weights)) + (1 - y) * np.log(1 - self.sigmoid(X, self.weights)))
+        self.cost = - np.sum(self.y * np.log(self.sigmoid(self.X, self.weights)) + (1 - self.y) * np.log(1 - self.sigmoid(self.X, self.weights)))
 
 
     def calculate_grad(self):
-        self.grad = np.sum(self.X * (self.sigmoid(self.X) - self.y[i]))
+        self.grad = self.X * (self.sigmoid(self.X, self.weights) - self.y)
 
 
     def train_model(self):
-        for epoch in range(number_of_epochs):
+        for epoch in range(self.number_of_epochs):
 
             # calculate cost
             self.calculate_cost()
@@ -31,6 +31,8 @@ class LogisticRegression(TrainingModel):
             # adjust weights
             self.weights -= self.grad
 
+            print("Cost: %f" % self.cost)
+
         # return weights
         return self.weights
 
@@ -40,9 +42,14 @@ class LogisticRegression(TrainingModel):
 
 
 def main():
-    logistic = LogisticRegression()
-
-    # define dummy data features x and y
+    # basic test data.  As this becomes more robust it will be moved to its own
+    # file
+    X = np.array([1,1.2,1.3,.9,7,8.1,7.5,7.7])
+    y = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+    learning_rate = 1
+    number_of_epochs = 10000
+ 
+    logistic = LogisticRegression(X, y, learning_rate, number_of_epochs)
 
     # randomize data
     logistic.shuffle_data()
