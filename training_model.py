@@ -18,13 +18,7 @@ class TrainingModel:
         self.learning_rate = learning_rate
         self.number_of_epochs = number_of_epochs
 
-        # initialize weights
-        self.theta = 0 # TODO
-
-        # initialize gradient vector
-        self.grad = np.zeros(10)# TODO: shape of X)
-
-        self.weights = np.zeros(X.shape[0])
+        self.weights = np.zeros((1, self.X.shape[0]))
 
         # initialize cost
         self.cost = 0
@@ -35,7 +29,7 @@ class TrainingModel:
         '''
         vectorized version of the sigmoid function
         '''
-        return 1 / ( 1 + np.exp(-X))
+        return np.power(( 1 + np.exp(-X)), -1)
 
     @staticmethod
     def sigmoid_prime(X):
