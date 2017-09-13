@@ -11,11 +11,13 @@ class LogisticRegression(TrainingModel):
         '''
         compute the cost of the logistic algorithm with weights <W>
         '''
-        self.cost = - np.sum(self.y * np.log(self.sigmoid(self.X, self.weights)) + (1 - self.y) * np.log(1 - self.sigmoid(self.X, self.weights)))
+        z = np.matmul(self.X, self.weights)
+        self.cost = - np.sum(self.y * np.log(self.sigmoid(z)) + (1 - self.y) * np.log(1 - self.sigmoid(z)))
 
 
     def calculate_grad(self):
-        self.grad = self.X * (self.sigmoid(self.X, self.weights) - self.y)
+        z = np.matmul(self.X, self.weights)
+        self.grad = self.X * (self.sigmoid(z) - self.y)
 
 
     def train_model(self):
@@ -45,8 +47,10 @@ def main():
     # file
     X = np.array([1,1.2,1.3,.9,7,8.1,7.5,7.7])
     y = np.array([0, 0, 0, 0, 1, 1, 1, 1])
-    learning_rate = 1
-    number_of_epochs = 10000
+    # TODO: something is wrong.  the cost is not going down and occasionally it
+    # is nan
+    learning_rate = .001
+    number_of_epochs = 1000
  
     logistic = LogisticRegression(X, y, learning_rate, number_of_epochs)
 

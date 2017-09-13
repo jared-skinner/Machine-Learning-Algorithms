@@ -31,18 +31,28 @@ class TrainingModel:
 
 
     @staticmethod
-    def sigmoid(X, theta):
+    def sigmoid(X):
         '''
         vectorized version of the sigmoid function
         '''
-        return 1 / ( 1 + np.exp(- theta * X))
+        return 1 / ( 1 + np.exp(-X))
 
     @staticmethod
-    def sigmoid_prime(X, theta):
+    def sigmoid_prime(X):
         '''
         vectorized version of the derivative of the sigmoid function
         '''
         return sigmoid(X, theta) * (1 - sigmoid(X, theta))
+
+
+    @staticmethod
+    def tanh(X):
+        return (np.exp(X) - np.exp(-X))/(np.exp(X) + np.exp(X))
+
+
+    @staticmethod
+    def tanh_prime(X, theta):
+        return 1 - np.power(tanh(X, theta), 2)
 
 
     def shuffle_data(self):

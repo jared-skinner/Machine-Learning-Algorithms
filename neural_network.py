@@ -3,6 +3,7 @@ import matplotlib as pyplot
 from training_model import TrainingModel
 
 
+# TODO: add in bias terms
 class NeuralNetwork(TrainingModel):
     '''
     basic neural network
@@ -31,7 +32,14 @@ class NeuralNetwork(TrainingModel):
 
 
     def foward_feed(self):
-        pass
+        # a is the input values of the current layer.  We will start with X
+        a = self.X
+
+        for weight in self.weights:
+            z = np.matmul(z, weight)
+            a = self.tanh(a)
+
+        return a
 
 
     def back_prop(self):
@@ -40,9 +48,11 @@ class NeuralNetwork(TrainingModel):
 
 def main():
     # dummy example.  Will eventually move to neural_network_test.py
-    nn = NeuralNetwork([15, 5, 5, 1], 10, 16)
+    nn = NeuralNetwork(np.array([15, 5, 5, 1]), np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]), 16)
 
     #print(nn.weights)
+
+    print(nn.foward_feed())
 
 
 if __name__ == "__main__":
