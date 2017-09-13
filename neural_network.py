@@ -20,11 +20,8 @@ class NeuralNetwork(TrainingModel):
 
         self.weights = []
         # calculate weights, place these in a list of np arrays
-        for i, _ in enumerate(layers):
-            if i == 0:
-                continue
-
-            self.weights.append(np.random.rand(layers[i-1], layers[i]))
+        for layer, next_layer in zip(layers, layers[1:]):
+            self.weights.append(np.random.rand(layer, next_layer))
 
         # bias value for everything except the output layer
         self.bias = np.ones(len(self.layers) - 1)
@@ -43,12 +40,9 @@ class NeuralNetwork(TrainingModel):
 
 def main():
     # dummy example.  Will eventually move to neural_network_test.py
+    nn = NeuralNetwork([15, 5, 5, 1], 10, 16)
 
-
-
-
-
-    nn = NeuralNetwork([15, 5, 5, 1])
+    #print(nn.weights)
 
 
 if __name__ == "__main__":
