@@ -43,9 +43,6 @@ class LinearRegression(TrainingModel):
         # training weights
 
         for epoch in range(self.number_of_epochs):
-            # calculate cost
-            self.calculate_cost()
-                
             # calculate gradient
             self.calculate_grad()
 
@@ -53,20 +50,17 @@ class LinearRegression(TrainingModel):
             self.weights -= self.grad
             
             if (epoch + 1) % 6000 == 0 or epoch == 0:
+
+                # calculate cost
+                self.calculate_cost()
+
                 print("Cost = %f" % self.cost)
 
-                # TODO: this logic is broken!
                 if 'DISPLAY' in environ.keys():
-                    X_plot_vals = np.arange(0, 10, .001)
+                    y_predict = np.matmul(self.weights, self.X)
 
-                    X_plot_powers = []
-                    for i in range(0,7):
-                        x_pow = np.power(X_plot_vals, i)
-                        X_plot_powers.append(x_pow)
-
-                    y_plot_vals = np.matmul(self.weights, X_plot_powers)
                     plt.plot(X, y, 'ro')
-                    plt.plot(X_plot_vals, y_plot_vals)
+                    plt.plot(X, y_predict, 'bo')
                     plt.show()
             
         return self.weights
