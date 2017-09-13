@@ -4,7 +4,6 @@ from training_model import TrainingModel
 
 class LogisticRegression(TrainingModel):
     def __init__(self, X, y, learning_rate, number_of_epochs):
-        # TODO: initialize based on superclass
         super(LogisticRegression, self).__init__(X, y, learning_rate, number_of_epochs)
 
 

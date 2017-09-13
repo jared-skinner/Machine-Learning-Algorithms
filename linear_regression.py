@@ -1,53 +1,81 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from training_model import TrainingModel
+
+# environ to see if there is a display defined for showing off plots
 from os import environ
 
-def train_model(X, y, number_of_epochs, learning_rate):
-    # training weights
-    W = (np.random.rand(X.shape[0]) - .5) * 10
+class LinearRegression(TrainingModel):
+    def __init__(self, X, y, learning_rate, number_of_epochs):
+        super(LinearRegression, self).__init__(X, y, learning_rate, number_of_epochs)
 
-    for epoch in range(number_of_epochs):
-        # create predictions
-        y_approx = np.matmul(W, X)
 
-        # calculate cost
-        cost = np.sum(1/2 * np.power(y - y_approx,2))
+    def calculate_cost(self):
+        '''
+        compute the cost of the logistic algorithm with weights <W>
+        '''
+        self.cost = - np.sum(1/2 * np.power(self.y - np.matmul(self.X, self.weights), 2))
+
+
+    def calculate_grad(self):
+        self.grad = -(self.y - np.matmul(self.X, self.weights)) * self.X
+
+
+    def train_model(self):
+        for epoch in range(self.number_of_epochs):
+
+            # calculate cost
+            self.calculate_cost()
+
+            # calculate grad
+            self.calculate_grad()
+
+            # adjust weights
+            self.weights -= self.grad
+
+            print("Cost: %f" % self.cost)
+
+        # return weights
+        return self.weights
+
+
+    def train_model(self):
+        # training weights
+
+        for epoch in range(self.number_of_epochs):
+            # calculate cost
+            self.calculate_cost()
+                
+            # calculate gradient
+            self.calculate_grad()
+
+            # adjust weights
+            self.weights -= self.grad
             
-        # calculate gradient
-        grad = np.sum(-(y - y_approx) * X, axis=1)
+            if (epoch + 1) % 6000 == 0 or epoch == 0:
+                print("Cost = %f" % self.cost)
 
-        # move weights
-        W = W - learning_rate * grad
-        
-        if (epoch + 1) % 6000 == 0 or epoch == 0:
-            print("Cost = %f" % cost)
+                # TODO: this logic is broken!
+                if 'DISPLAY' in environ.keys():
+                    X_plot_vals = np.arange(0, 10, .001)
 
-            if 'DISPLAY' in environ.keys():
-                X_plot_vals = np.arange(0, 10, .001)
+                    X_plot_powers = []
+                    for i in range(0,7):
+                        x_pow = np.power(X_plot_vals, i)
+                        X_plot_powers.append(x_pow)
 
-                X_plot_powers = []
-                for i in range(0,7):
-                    x_pow = np.power(X_plot_vals, i)
-                    X_plot_powers.append(x_pow)
+                    y_plot_vals = np.matmul(self.weights, X_plot_powers)
+                    plt.plot(X, y, 'ro')
+                    plt.plot(X_plot_vals, y_plot_vals)
+                    plt.show()
+            
+        return self.weights
 
-                y_plot_vals = np.matmul(W, X_plot_powers)
-                plt.plot(X, y, 'ro')
-                plt.plot(X_plot_vals, y_plot_vals)
-                plt.show()
-        
-    print("==========================================================")
-    print("================== TRAINING COMPLETE =====================")
-    print("==========================================================")
-        
-    print("Weights: ")
-    print(W)
-    print("Cost: %f" % cost)  
-
-    return W
+    def test_model(self):
+        pass
 
 
 def main():
-
     # use this for testing the model
 
     # define some dummy data
@@ -73,10 +101,12 @@ def main():
 
     # learning rate and number of epochs.  TODO: figure out why the learning rate
     # has to be so low to prevent divergence
-    learning_rate = .0000000000001
-    number_of_epochs = 100000
+    learning_rate = .000000000000000000001
+    number_of_epochs = 100
 
-    weights = train_model(X_features, y, number_of_epochs, learning_rate)
+    linear_model = LinearRegression(X, y, learning_rate, number_of_epochs)
+
+    linear_model.train_model()
 
 if __name__ == "__main__":
     main()
