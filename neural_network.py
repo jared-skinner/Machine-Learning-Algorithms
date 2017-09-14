@@ -20,12 +20,16 @@ class NeuralNetwork(TrainingModel):
         self.y = y
 
         self.weights = []
+        self.biases = []
         # calculate weights, place these in a list of np arrays
         for layer, next_layer in zip(layers, layers[1:]):
             self.weights.append(np.random.rand(layer, next_layer))
 
-        # bias value for everything except the output layer
-        self.bias = np.ones(len(self.layers) - 1)
+            # bias value for everything except the output layer
+            self.biases.append(np.random.rand(next_layer).reshape(1, next_layer))
+
+        print(self.weights[0].shape)
+        print(self.biases[0].shape)
 
 
         #super(NeuralNetwork, self).__init__()
@@ -35,8 +39,8 @@ class NeuralNetwork(TrainingModel):
         # a is the input values of the current layer.  We will start with X
         a = self.X
 
-        for weight in self.weights:
-            z = np.matmul(z, weight)
+        for weight, bias in zip(self.weights, self.biases):
+            z = np.transpose(np.matmul(np.transpose(weight), a) + bias)
             a = self.tanh(a)
 
         return a
@@ -48,7 +52,7 @@ class NeuralNetwork(TrainingModel):
 
 def main():
     # dummy example.  Will eventually move to neural_network_test.py
-    nn = NeuralNetwork(np.array([15, 5, 5, 1]), np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]), 16)
+    nn = NeuralNetwork(np.array([15, 5, 5, 1]), np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]).reshape(15,1), 16)
 
     #print(nn.weights)
 
