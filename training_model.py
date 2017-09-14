@@ -18,7 +18,7 @@ class TrainingModel:
         self.learning_rate = learning_rate
         self.number_of_epochs = number_of_epochs
 
-        self.weights = np.zeros((1, self.X.shape[0]))
+        self.weights = np.zeros((1, self.X.shape[1]))
 
         # initialize cost
         self.cost = 0
