@@ -145,9 +145,17 @@ class NeuralNetwork(TrainingModel):
 
 def main():
     # dummy example.  Will eventually move to neural_network_test.py
-    nn = NeuralNetwork(layers=np.array([15, 2, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [1,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([1,1,1]).reshape(3,1), learning_rate=.001)
+    #nn = NeuralNetwork(layers=np.array([15, 10, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [1,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([-1,1,1]).reshape(3,1), learning_rate=.001)
 
-    number_of_epochs = 70
+
+    X = np.array([[-1,-1], [1,1], [2,2]]).reshape(3,2)
+    y = np.array([-1, 1, 1]).reshape(3,1)
+    learning_rate = .01
+    layers = np.array([2, 10, 10, 1])
+
+    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate)
+
+    number_of_epochs = 300
 
     for epoch in range(number_of_epochs):
         #print(nn.weights[2])
@@ -159,9 +167,12 @@ def main():
         for i, _ in enumerate(nn.weights):
             nn.weights[i] = nn.weights[i] - nn.learning_rate * nn.grad[i]
 
-    test = np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(1,15)
+    test = np.array([[-1, -1]]).reshape(1,2)
     _,_,approx = nn.foward_feed(test)
     print(approx)
+
+
+    # TODO: ADD IN BIAS TERMS
 
 
 

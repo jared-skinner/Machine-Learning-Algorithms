@@ -42,7 +42,7 @@ class TrainingModel:
 
     @staticmethod
     def tanh(X):
-        return (np.exp(X) - np.exp(-X))/(np.exp(X) + np.exp(X))
+        return (np.exp(X) - np.exp(-X))/(np.exp(X) + np.exp(-X))
 
 
     @staticmethod
