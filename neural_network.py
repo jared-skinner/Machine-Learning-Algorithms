@@ -134,13 +134,6 @@ class NeuralNetwork(TrainingModel):
             if len(delta) == len(self.weights):
                 break
 
-            #print("weight.shape")
-            #print(weight.shape)
-            #print("delta[0].shape")
-            #print(delta[0].shape)
-            #print("z.shape")
-            #print(z.shape)
-
             delta.insert(0, np.matmul(weight, delta[0]) * np.transpose(self.tanh_prime(z)))
 
 def main():
@@ -150,15 +143,14 @@ def main():
 
     X = np.array([[-1,-1], [1,1], [2,2]]).reshape(3,2)
     y = np.array([-1, 1, 1]).reshape(3,1)
-    learning_rate = .01
-    layers = np.array([2, 10, 10, 1])
+    learning_rate = 1
+    layers = np.array([2, 1, 1])
 
     nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate)
 
-    number_of_epochs = 300
+    number_of_epochs = 4000
 
     for epoch in range(number_of_epochs):
-        #print(nn.weights[2])
         print(nn.cost())
 
         for i in range(nn.X.shape[0]):
