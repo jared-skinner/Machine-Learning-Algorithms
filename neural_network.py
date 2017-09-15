@@ -135,14 +135,15 @@ class NeuralNetwork(TrainingModel):
 
 def main():
     # dummy example.  Will eventually move to neural_network_test.py
-    nn = NeuralNetwork(layers=np.array([15, 5, 5, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [12,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([1,3,16]).reshape(3,1), learning_rate=.01)
+    nn = NeuralNetwork(layers=np.array([15, 5, 5, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [1,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([1,2,3]).reshape(3,1), learning_rate=.001)
 
-    number_of_epochs = 100
+    number_of_epochs = 10
 
     for epoch in range(number_of_epochs):
         print(nn.cost())
 
-        nn.back_prop(nn.X[[0],:], nn.y[[0],:])
+        for i in range(nn.X.shape[0]):
+            nn.back_prop(nn.X[[i],:], nn.y[[i],:])
 
         for i, _ in enumerate(nn.weights):
             nn.weights[i] = nn.weights[i] - nn.learning_rate * nn.grad[i]
