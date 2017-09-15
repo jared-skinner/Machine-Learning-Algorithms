@@ -103,8 +103,8 @@ class NeuralNetwork(TrainingModel):
 
         layer_activations, layer_output, _ = self.foward_feed(x)
 
-        a = layer_output[len(layer_output)-1]
-        z = layer_activations[len(layer_activations)-1]
+        a = layer_output[-1]
+        z = layer_activations[-1]
 
         # calculate the gradient of the output layer
         delta.insert(0, -(y - a) * self.tanh_prime(z))
@@ -119,7 +119,10 @@ class NeuralNetwork(TrainingModel):
 
         weights = reversed(self.weights)
 
-        layer_act = reversed(layer_activations)
+        # insert padding so arrays match in length
+        layer_activations.insert(0, np.array([0]))
+
+        layer_act = reversed(layer_activations[:-1])
 
         layer_out = reversed(layer_output[:-1])
 
@@ -127,19 +130,27 @@ class NeuralNetwork(TrainingModel):
             self.grad.insert(0, np.transpose(np.matmul(delta[0], a)))
 
             # TODO: this is terrible.  rewrite...
+
             if len(delta) == len(self.weights):
                 break
 
-            delta.insert(0, np.matmul(weight, delta[0]) * np.transpose(self.tanh_prime(z)))
+            #print("weight.shape")
+            #print(weight.shape)
+            #print("delta[0].shape")
+            #print(delta[0].shape)
+            #print("z.shape")
+            #print(z.shape)
 
+            delta.insert(0, np.matmul(weight, delta[0]) * np.transpose(self.tanh_prime(z)))
 
 def main():
     # dummy example.  Will eventually move to neural_network_test.py
-    nn = NeuralNetwork(layers=np.array([15, 5, 5, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [1,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([1,2,3]).reshape(3,1), learning_rate=.001)
+    nn = NeuralNetwork(layers=np.array([15, 2, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [1,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([1,1,1]).reshape(3,1), learning_rate=.001)
 
-    number_of_epochs = 10
+    number_of_epochs = 70
 
     for epoch in range(number_of_epochs):
+        #print(nn.weights[2])
         print(nn.cost())
 
         for i in range(nn.X.shape[0]):
@@ -147,6 +158,11 @@ def main():
 
         for i, _ in enumerate(nn.weights):
             nn.weights[i] = nn.weights[i] - nn.learning_rate * nn.grad[i]
+
+    test = np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(1,15)
+    _,_,approx = nn.foward_feed(test)
+    print(approx)
+
 
 
 if __name__ == "__main__":
