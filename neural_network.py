@@ -17,10 +17,7 @@ class NeuralNetwork(TrainingModel):
         self.layers = layers
         self.number_of_hidden_layers = len(self.layers) - 2
 
-
-
         assert X.shape[0] == y.shape[0]
-
 
         # regularization parameter.  real number
         self.lam = lam
@@ -44,11 +41,15 @@ class NeuralNetwork(TrainingModel):
             # bias value for everything except the output layer
             self.biases.append(np.random.rand(next_layer).reshape(1, next_layer))
 
+        self.grad = []
+
+        self.learning_rate = learning_rate
+
 
         #super(NeuralNetwork, self).__init__()
 
 
-    def foward_feed(self):
+    def foward_feed(self, x):
         '''
         given starting values in X, calculate the values of each neuron in the
         neural network in each layer.
@@ -61,7 +62,7 @@ class NeuralNetwork(TrainingModel):
 
         layer_output = []
 
-        a = self.X
+        a = x
         layer_output.append(a)
 
         for weight, bias in zip(self.weights, self.biases):
@@ -71,6 +72,7 @@ class NeuralNetwork(TrainingModel):
             layer_output.append(a)
 
         y_approx = a
+
         return layer_activations, layer_output, y_approx
 
 
@@ -83,93 +85,67 @@ class NeuralNetwork(TrainingModel):
 
         no_exs = self.X.shape[0]
 
-        _, _, y_approx = self.foward_feed()
+        _, _, y_approx = self.foward_feed(self.X)
         cost = 1/no_exs * np.sum(1/2 * np.power(y_approx - self.y, 2))
 
         return cost
 
 
-    def back_prop(self):
+    def back_prop(self, x, y):
         '''
         perform back propigation to updated the weights
         '''
 
-
         # the list of deltas
         delta = []
-        grad = []
+        self.grad = []
 
 
-        layer_activations, layer_output, _ = self.foward_feed()
+        layer_activations, layer_output, _ = self.foward_feed(x)
 
-        a = layer_output[-1]
-        z = layer_activations[-1]
-
-
+        a = layer_output[len(layer_output)-1]
+        z = layer_activations[len(layer_activations)-1]
 
         # calculate the gradient of the output layer
-        delta.insert(0, -(self.y - a) * self.tanh_prime(z))
-        grad.insert(0, np.matmul(delta[0], np.transpose(a)))
+        delta.insert(0, -(y - a) * self.tanh_prime(z))
 
-        print(a.shape)
-        print(delta[0].shape)
+        a = layer_output[len(layer_output)-2]
+
 
         # the combination or weights and activation values does not readily
         # match up.  SO, i am going to manually force the arrays to the correct
         # size and zip em together!  I am also going to reverse the arrays,
         # since that's how we will need them
 
-        weights = reversed(self.weights[1:len(self.weights)])
-        layer_act = reversed(layer_activations[:len(layer_activations) - 1])
-        layer_out = reversed(layer_output[:len(layer_output) - 1])
+        weights = reversed(self.weights)
 
-        print(layer_output)
+        layer_act = reversed(layer_activations)
 
-        print(grad)
+        layer_out = reversed(layer_output[:-1])
 
         for weight, z, a in zip(weights, layer_act, layer_out):
+            self.grad.insert(0, np.transpose(np.matmul(delta[0], a)))
+
+            # TODO: this is terrible.  rewrite...
+            if len(delta) == len(self.weights):
+                break
+
             delta.insert(0, np.matmul(weight, delta[0]) * np.transpose(self.tanh_prime(z)))
-
-            grad.insert(0, np.matmul(delta[0], a))
-
-
-        #print(delta)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        pass
 
 
 def main():
     # dummy example.  Will eventually move to neural_network_test.py
-    nn = NeuralNetwork(layers=np.array([15, 5, 5, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [12,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([1,3,16]).reshape(3,1), learning_rate=.001)
+    nn = NeuralNetwork(layers=np.array([15, 5, 5, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [12,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([1,3,16]).reshape(3,1), learning_rate=.01)
 
-    #print(nn.weights)
+    number_of_epochs = 100
 
-    nn.foward_feed()
+    for epoch in range(number_of_epochs):
+        print(nn.cost())
 
-    nn.cost()
+        nn.back_prop(nn.X[[0],:], nn.y[[0],:])
 
-    nn.back_prop()
+        for i, _ in enumerate(nn.weights):
+            nn.weights[i] = nn.weights[i] - nn.learning_rate * nn.grad[i]
 
 
 if __name__ == "__main__":
