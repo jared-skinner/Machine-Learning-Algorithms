@@ -180,31 +180,3 @@ class NeuralNetwork(TrainingModel):
 
 
 
-def main():
-    # dummy example.  Will eventually move to neural_network_test.py
-    #nn = NeuralNetwork(layers=np.array([15, 10, 1]), X=np.array([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], [1,2.3,3.5,4,5,6,7,8,9,19,11,12,13,14,15], [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]]).reshape(3, 15), y=np.array([-1,1,1]).reshape(3,1), learning_rate=.001)
-    X = np.array([[1,1], [1,3], [4,4]]).reshape(3,2)
-    y = np.array([0, 10, 10]).reshape(3,1)
-    learning_rate = .03
-    layers = np.array([2, 3, 1])
-    weight_decay = .0#001
-    number_of_epochs = 500
-
-    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=TrainingModel.rect_lin, number_of_epochs=number_of_epochs, plot_cost_graph=True)
-
-    test = np.array([[4, 4]]).reshape(1,2)
-    _,_,approx = nn.foward_feed(test)
-
-    print(approx)
-
-
-    nn.train_model()
-
-    test = np.array([[4, 4]]).reshape(1,2)
-    _,_,approx = nn.foward_feed(test)
-
-    print(approx)
-
-
-if __name__ == "__main__":
-    main()
