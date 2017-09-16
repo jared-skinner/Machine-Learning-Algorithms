@@ -161,10 +161,10 @@ class NeuralNetwork(TrainingModel):
             for i in range(self.X.shape[0]):
                 self.back_prop(self.X[[i],:], self.y[[i],:])
 
-                for i, _ in enumerate(self.weights):
+                for j, _ in enumerate(self.weights):
 
-                    self.weights[i] = self.weights[i] - self.learning_rate * (1/no_exs * self.grad[i] + self.weight_decay * self.weights[i])
-                    self.biases[i] = self.biases[i] - 1/no_exs * self.learning_rate * self.bias_grad[i]
+                    self.weights[j] = self.weights[j] - self.learning_rate * (1/no_exs * self.grad[j] + self.weight_decay * self.weights[j])
+                    self.biases[j] = self.biases[j] - 1/no_exs * self.learning_rate * self.bias_grad[j]
 
             if self.plot_cost_graph:
                 if epoch % np.round(self.number_of_epochs/100) == 0:
