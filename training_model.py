@@ -50,6 +50,16 @@ class TrainingModel:
         return 1 - np.power(TrainingModel.tanh(X), 2)
 
 
+    @staticmethod
+    def rect_lin(X):
+        return np.maximum(X, 0)
+
+
+    @staticmethod
+    def rect_lin_prime(X):
+        return X > 0
+
+
     def shuffle_data(self):
         '''
         shuffle X and y data for better training

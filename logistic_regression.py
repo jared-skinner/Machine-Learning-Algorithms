@@ -8,7 +8,12 @@ class LogisticRegression(TrainingModel):
 
 
     def calculate_prediction(self):
-        z = np.matmul(self.weights, self.X)
+
+        #          X                Weights
+        #
+        # examples X features * features X 1   
+
+        z = np.matmul(self.X, self.weights)
         return self.sigmoid(z)
 
 
@@ -16,13 +21,14 @@ class LogisticRegression(TrainingModel):
         '''
         compute the cost of the logistic algorithm with weights <W>
         '''
-        z = np.matmul(self.weights, self.X)
+        z = np.matmul(self.X, self.weights)
         self.cost = - np.sum(self.y * np.log(self.sigmoid(z)) + (1 - self.y) * np.log(1 - self.sigmoid(z)))
 
 
     def calculate_grad(self):
         y_predict = self.calculate_prediction()
-        self.grad = np.matmul(self.X, np.transpose(y_predict - self.y))
+
+        self.grad = np.matmul(np.transpose(self.X), y_predict - self.y)
 
 
     def train_model(self):
@@ -50,10 +56,10 @@ class LogisticRegression(TrainingModel):
 def main():
     # basic test data.  As this becomes more robust it will be moved to its own
     # file
-    X = np.array([1, 1.2, 1.3, .9, 7, 8.1, 7.5, 7.7]).reshape(1, 8)
-    y = np.array([0,   0,   0,  0, 1,   1,   1,   1]).reshape(1, 8)
+    X = np.array([1, 1.2, 1.3, .9, 7, 8.1, 7.5, 7.7]).reshape(8, 1)
+    y = np.array([0,   0,   0,  0, 1,   1,   1,   1]).reshape(8, 1)
     learning_rate = .1
-    number_of_epochs = 20
+    number_of_epochs = 200
  
     logistic = LogisticRegression(X, y, learning_rate, number_of_epochs)
 
