@@ -8,7 +8,7 @@ class NeuralNetwork(TrainingModel):
     basic neural network
     '''
 
-    def __init__(self, layers, X, y, learning_rate = 1, weight_decay = 0, activation_fn=TrainingModel.sigmoid, number_of_epochs=10, plot_cost_graph=False):
+    def __init__(self, layers, X, y, learning_rate = 1, weight_decay = 0, activation_fn=TrainingModel.sigmoid, number_of_epochs=10, plot_cost_graph=False, number_of_batches=10):
 
 
         self.plot_cost_graph = plot_cost_graph
@@ -55,7 +55,8 @@ class NeuralNetwork(TrainingModel):
         self.activation_fn = activation_fn
         self.activation_fn_prime = derivative_dict[activation_fn]
 
-
+        self.number_of_batches = number_of_batches
+        self.batch_size = int(np.round(self.X.shape[0]/self.number_of_batches))
 
         #super(NeuralNetwork, self).__init__()
 
@@ -104,7 +105,6 @@ class NeuralNetwork(TrainingModel):
         return cost
 
 
-    # TODO: support batch back prop
     def back_prop(self, x, y):
         '''
         perform back propigation to updated the weights
@@ -136,19 +136,23 @@ class NeuralNetwork(TrainingModel):
 
         for l in range(n - 1, -1, -1):
             grad[l] = np.matmul(a[l].T, delta[l + 1])
-            bias_grad[l] = delta[l + 1]
+            bias_grad[l] = np.sum(delta[l + 1], axis=0)
 
         self.grad = grad
         self.bias_grad = bias_grad
-
 
 
     def train_model(self):
         no_exs = self.X.shape[0]
 
         for epoch in range(self.number_of_epochs):
-            for i in range(self.X.shape[0]):
-                self.back_prop(self.X[[i],:], self.y[[i],:])
+            start_of_batch = 0
+            for i in range(self.number_of_batches):
+
+                end_of_batch = min(start_of_batch + self.batch_size, self.X.shape[0] - 1)
+
+                self.back_prop(self.X[start_of_batch:end_of_batch,:], self.y[start_of_batch:end_of_batch,:])
+                start_of_batch = start_of_batch + self.batch_size + 1
 
                 for j, _ in enumerate(self.weights):
                     self.weights[j] = self.weights[j] - self.learning_rate * (1/no_exs * self.grad[j] + self.weight_decay * self.weights[j])
