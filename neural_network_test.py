@@ -72,19 +72,27 @@ def main():
     X = images
     y = y_vals
 
-    learning_rate = .1
-    layers = np.array([784, 15, 10])
-    weight_decay = .00001
+    learning_rate = .3 
+    layers = np.array([784, 5, 10])
+    weight_decay = 0 #.00001
     number_of_epochs = 10
     activation_fn = TrainingModel.sigmoid
-    number_of_batches = 2
+    number_of_batches = 1
 
     nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=True, number_of_batches=number_of_batches)
 
     nn.train_model()
 
-    #print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
-    #print("actual: %d" % TrainingModel.one_hot_to_digit(y_vals[1]))
+
+    test = X[1]
+
+    _,_,approx = nn.foward_feed(test)
+
+    print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
+
+    test.reshape(28, 28)
+
+    print("actual: %d" % TrainingModel.one_hot_to_digit(y[1]))
 
 
 def dumb_example():

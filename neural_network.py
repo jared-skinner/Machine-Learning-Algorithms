@@ -79,8 +79,9 @@ class NeuralNetwork(TrainingModel):
 
         for weight, bias in zip(self.weights, self.biases):
             z = np.matmul(a, weight) + bias
-            layer_activations.append(z)
             a = self.activation_fn(z)
+
+            layer_activations.append(z)
             layer_output.append(a)
 
         y_approx = a
@@ -93,15 +94,16 @@ class NeuralNetwork(TrainingModel):
         compute to cost
         '''
 
-        no_exs = self.X.shape[0]
+        # number of examples
+        m = self.X.shape[0]
 
         reg_term = 0
         for weight in self.weights:
             reg_term += np.sum(np.power(weight, 2))
 
         _, _, y_approx = self.foward_feed(self.X)
-        cost = 1/no_exs * np.sum(1/2 * np.power(y_approx - self.y, 2)) + self.weight_decay / 2 * reg_term
-
+        cost = 1/m * np.sum(1/2 * np.power(y_approx - self.y, 2)) + self.weight_decay / 2 * reg_term
+        #cost = 1/m * np.sum(- self.y * np.log(y_approx) - (1 - self.y) * np.log(1 - y_approx))
         return cost
 
 
@@ -114,8 +116,6 @@ class NeuralNetwork(TrainingModel):
         delta = [None] * len(self.layers)
         grad = [None] * (len(self.layers) - 1)
         bias_grad = [None] * (len(self.layers) - 1)
-        self.grad = []
-        self.bias_grad = []
 
         z, a, _ = self.foward_feed(x)
 
@@ -158,12 +158,11 @@ class NeuralNetwork(TrainingModel):
                     self.weights[j] = self.weights[j] - self.learning_rate * (1/no_exs * self.grad[j] + self.weight_decay * self.weights[j])
                     self.biases[j] = self.biases[j] - self.learning_rate * (1/no_exs * self.bias_grad[j])
 
-            #TODO: this logic is throwing an error
-#            if self.plot_cost_graph:
-#                if epoch % np.round(self.number_of_epochs/100) == 0:
-#                    plt.plot(epoch, self.cost(), 'ro')
+            if self.plot_cost_graph:
+                if epoch % np.ceil(self.number_of_epochs/100) == 0:
+                    plt.plot(epoch, self.cost(), 'ro')
 
-            if epoch % np.round(self.number_of_epochs/10) == 0:
+            if epoch % np.ceil(self.number_of_epochs/10) == 0:
                 print(self.cost())
 
 
