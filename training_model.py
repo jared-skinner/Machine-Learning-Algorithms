@@ -102,21 +102,23 @@ class TrainingModel:
 
 
     @staticmethod
-    def digit_to_one_hot(self, size, digit):
+    def digit_to_one_hot(size, digit):
         '''
         for a given integer, return an array of size <size> where the <digit>
         index has a value of 1 and all other values are 0.  This is used during
         multi-classification problems.
         '''
+        if digit > size:
+            return False
+
         array = np.zeros(size)
-        array[digit] = 0
+        array[digit] = 1
         return array
 
 
     @staticmethod
-    def one_hot_to_digit(self, array):
-        hot_index = [index for index, item in enumerate(array) if item == 1]
-        assert len(hot_index) != 0
-
-        return hot_index[0]
+    def one_hot_to_digit(array):
+        # TODO: replace argmax with something better (only returns the first instance)
+        hot_index = np.argmax(array)
+        return hot_index
 

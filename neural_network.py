@@ -111,64 +111,53 @@ class NeuralNetwork(TrainingModel):
         '''
 
         # the list of deltas
-        delta = []
+        delta = [None] * len(self.layers)
+        grad = [None] * (len(self.layers) - 1)
+        bias_grad = [None] * (len(self.layers) - 1)
         self.grad = []
         self.bias_grad = []
 
+        z, a, _ = self.foward_feed(x)
 
-        layer_activations, layer_output, _ = self.foward_feed(x)
+        # pad z's to match number of layers
+        z.insert(0, None)
 
-        a = layer_output[-1]
-        z = layer_activations[-1]
+        # shorthand for clarity
+        W = self.weights
+
+        # number of layers - 1 since we are indexing starting at 0
+        n = len(self.layers) - 1
 
         # calculate the gradient of the output layer
-        delta.insert(0, -(y - a) * self.activation_fn_prime(z))
+        delta[n] = -(y - a[n]) * self.activation_fn_prime(z[n])
 
-        a = layer_output[len(layer_output)-2]
+        for l in range(n - 1, 0, -1):
+            delta[l] = np.matmul(delta[l + 1] , W[l].T) * self.activation_fn_prime(z[l])
 
+        for l in range(n - 1, -1, -1):
+            grad[l] = np.matmul(a[l].T, delta[l + 1])
+            bias_grad[l] = delta[l + 1]
 
-        # the combination or weights and activation values does not readily
-        # match up.  SO, i am going to manually force the arrays to the correct
-        # size and zip em together!  I am also going to reverse the arrays,
-        # since that's how we will need them
-        weights = reversed(self.weights)
+        self.grad = grad
+        self.bias_grad = bias_grad
 
-        # insert padding so arrays match in length
-        layer_activations.insert(0, np.array([0]))
-
-        layer_act = reversed(layer_activations[:-1])
-
-        layer_out = reversed(layer_output[:-1])
-
-        for weight, z, a in zip(weights, layer_act, layer_out):
-            self.grad.insert(0, np.matmul(delta[0], a).T)
-            self.bias_grad.insert(0, delta[0].T)
-
-            # TODO: this is terrible.  rewrite...
-
-            if len(delta) == len(self.weights):
-                break
-
-            delta.insert(0, np.matmul(weight, delta[0]) * self.activation_fn_prime(z).T)
 
 
     def train_model(self):
         no_exs = self.X.shape[0]
 
         for epoch in range(self.number_of_epochs):
-
-
             for i in range(self.X.shape[0]):
                 self.back_prop(self.X[[i],:], self.y[[i],:])
 
                 for j, _ in enumerate(self.weights):
-
                     self.weights[j] = self.weights[j] - self.learning_rate * (1/no_exs * self.grad[j] + self.weight_decay * self.weights[j])
-                    self.biases[j] = self.biases[j] - 1/no_exs * self.learning_rate * self.bias_grad[j]
+                    self.biases[j] = self.biases[j] - self.learning_rate * (1/no_exs * self.bias_grad[j])
 
-            if self.plot_cost_graph:
-                if epoch % np.round(self.number_of_epochs/100) == 0:
-                    plt.plot(epoch, self.cost(), 'ro')
+            #TODO: this logic is throwing an error
+#            if self.plot_cost_graph:
+#                if epoch % np.round(self.number_of_epochs/100) == 0:
+#                    plt.plot(epoch, self.cost(), 'ro')
 
             if epoch % np.round(self.number_of_epochs/10) == 0:
                 print(self.cost())
