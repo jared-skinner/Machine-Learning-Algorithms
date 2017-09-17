@@ -35,7 +35,7 @@ def main():
 
 
 
-    if os.path.isfile("mnist_train.pickle"):
+    if os.path.isfile("mnist/mnist_train.pickle"):
         with open("mnist_train.pickle", 'rb') as mnist_pickle:
             pickled_data = pickle.load(mnist_pickle)
             y_vals, images = pickled_data[0], pickled_data[1]
@@ -65,7 +65,7 @@ def main():
         pickled_data = [y_vals, images]
 
 
-        with open("mnist_train.pickle", 'wb') as mnist_pickle:
+        with open("mnist/mnist_train.pickle", 'wb') as mnist_pickle:
             pickle.dump(pickled_data, mnist_pickle)
 
     # dummy example
