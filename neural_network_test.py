@@ -72,10 +72,10 @@ def main():
     X = images
     y = y_vals
 
-    learning_rate = .3 
-    layers = np.array([784, 5, 10])
-    weight_decay = 0 #.00001
-    number_of_epochs = 10
+    learning_rate =  3
+    layers = np.array([784, 30, 10])
+    weight_decay = .00001
+    number_of_epochs = 30
     activation_fn = TrainingModel.sigmoid
     number_of_batches = 1
 
@@ -83,16 +83,25 @@ def main():
 
     nn.train_model()
 
+    test = np.zeros(784)
+    for i in range(X.shape[0]):
 
-    test = X[1]
+        test = X[i]
+        actual = y[i]
 
-    _,_,approx = nn.foward_feed(test)
+        _,_,approx = nn.foward_feed(test)
 
-    print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
+        print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
+        print("actual: %d" % TrainingModel.one_hot_to_digit(actual))
+        print("\n")
 
-    test.reshape(28, 28)
+#        vis = test.reshape(28,28)
 
-    print("actual: %d" % TrainingModel.one_hot_to_digit(y[1]))
+#        plt.imshow(vis)
+#        plt.show()
+
+        if i == 100:
+            break
 
 
 def dumb_example():
@@ -109,6 +118,8 @@ def dumb_example():
     _,_,approx = nn.foward_feed(test)
 #
     print(approx)
+
+
 
     nn.train_model()
 

@@ -41,10 +41,10 @@ class NeuralNetwork(TrainingModel):
 
         # calculate weights, place these in a list of np arrays
         for layer, next_layer in zip(layers, layers[1:]):
-            self.weights.append(np.random.rand(layer, next_layer))
+            self.weights.append(np.random.randn(layer, next_layer))
 
             # bias value for everything except the output layer
-            self.biases.append(np.random.rand(next_layer).reshape(1, next_layer))
+            self.biases.append(np.random.randn(next_layer).reshape(1, next_layer))
 
         # gradient
         self.grad = []
@@ -102,8 +102,8 @@ class NeuralNetwork(TrainingModel):
             reg_term += np.sum(np.power(weight, 2))
 
         _, _, y_approx = self.foward_feed(self.X)
-        cost = 1/m * np.sum(1/2 * np.power(y_approx - self.y, 2)) + self.weight_decay / 2 * reg_term
-        #cost = 1/m * np.sum(- self.y * np.log(y_approx) - (1 - self.y) * np.log(1 - y_approx))
+        #cost = 1/m * np.sum(1/2 * np.power(y_approx - self.y, 2)) + self.weight_decay / 2 * reg_term
+        cost = 1/m * np.sum(- self.y * np.log(y_approx) - (1 - self.y) * np.log(1 - y_approx))
         return cost
 
 
@@ -129,7 +129,7 @@ class NeuralNetwork(TrainingModel):
         n = len(self.layers) - 1
 
         # calculate the gradient of the output layer
-        delta[n] = -(y - a[n]) * self.activation_fn_prime(z[n])
+        delta[n] = -(y - a[n])# * self.activation_fn_prime(z[n])
 
         for l in range(n - 1, 0, -1):
             delta[l] = np.matmul(delta[l + 1] , W[l].T) * self.activation_fn_prime(z[l])

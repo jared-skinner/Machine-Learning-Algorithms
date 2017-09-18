@@ -29,7 +29,7 @@ class TrainingModel:
         '''
         vectorized version of the sigmoid function
         '''
-        return np.power(( 1 + np.exp(-X)), -1)
+        return 1/( 1 + np.exp(-X))
 
 
     @staticmethod
@@ -37,7 +37,8 @@ class TrainingModel:
         '''
         vectorized version of the derivative of the sigmoid function
         '''
-        return TrainingModel.sigmoid(X) * (1 - TrainingModel.sigmoid(X))
+        a = TrainingModel.sigmoid(X)
+        return a * (1 - a)
 
 
     @staticmethod
