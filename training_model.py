@@ -24,6 +24,7 @@ class TrainingModel:
         self.cost = 0
 
 
+    
     @staticmethod
     def sigmoid(X):
         '''
@@ -43,21 +44,33 @@ class TrainingModel:
 
     @staticmethod
     def tanh(X):
+        '''
+        vectorized version of the hyperbolic tangent
+        '''
         return (np.exp(X) - np.exp(-X))/(np.exp(X) + np.exp(-X))
 
 
     @staticmethod
     def tanh_prime(X):
+        '''
+        vectorized version of the derivative of the hyperbolic tangent
+        '''
         return 1 - np.power(TrainingModel.tanh(X), 2)
 
 
     @staticmethod
     def rect_lin(X):
+        '''
+        vectorized version of the rectifier linear function
+        '''
         return np.maximum(X, 0)
 
 
     @staticmethod
     def rect_lin_prime(X):
+        '''
+        vectorized version of the derivative of the rectifier linear function
+        '''
         return X > 0
 
 

@@ -35,6 +35,8 @@ def main():
 
 
 
+    # if mnist data has already been processed, then load the pickle, otherwise
+    # process the data
     if os.path.isfile("mnist/mnist_train.pickle"):
         with open("mnist/mnist_train.pickle", 'rb') as mnist_pickle:
             pickled_data = pickle.load(mnist_pickle)
@@ -49,8 +51,6 @@ def main():
 
                 # read image from training data
                 image = scipy.misc.imread(os.path.join("mnist/Images/train/", image_path), flatten=True)
-
-                # read in corresponding value from csv file
 
                 image = np.ndarray.flatten(image)
 
@@ -68,13 +68,13 @@ def main():
         with open("mnist/mnist_train.pickle", 'wb') as mnist_pickle:
             pickle.dump(pickled_data, mnist_pickle)
 
-    # dummy example
-    X = images
+    # regularize so we don't saturate the model
+    X = images/np.max(images)
     y = y_vals
 
     learning_rate =  3
-    layers = np.array([784, 30, 10])
-    weight_decay = .00001
+    layers = np.array([784, 25, 10])
+    weight_decay = 0#.00001
     number_of_epochs = 30
     activation_fn = TrainingModel.sigmoid
     number_of_batches = 1
@@ -94,11 +94,6 @@ def main():
         print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
         print("actual: %d" % TrainingModel.one_hot_to_digit(actual))
         print("\n")
-
-#        vis = test.reshape(28,28)
-
-#        plt.imshow(vis)
-#        plt.show()
 
         if i == 100:
             break

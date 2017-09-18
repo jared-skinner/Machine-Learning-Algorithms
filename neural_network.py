@@ -9,28 +9,63 @@ class NeuralNetwork(TrainingModel):
     '''
 
     def __init__(self, layers, X, y, learning_rate = 1, weight_decay = 0, activation_fn=TrainingModel.sigmoid, number_of_epochs=10, plot_cost_graph=False, number_of_batches=10):
+        '''
+        inputs:
 
+        layers            - A list containing the number of nodes in each
+                            layer.
+
+        X                 - inputs for the neural network.  This is a numpy
+                            array of shape (#examples X #features).  Note:
+                            #features must be equal to the value first index of
+                            layers
+
+        y                 - outputs for the neural network.  This is a numpy
+                            array of shape (#examples X #outputs).  Note 1:
+                            #outputs must be equal to the value last index of
+                            layers.  Note 2: the number of rows in X must match
+                            the number of rows in y.
+
+        learning_rate     - A floating point number.  How aggressively the
+                            weights of the neural network should be updated.
+
+        weight_decay      - A floating point number.  Regularization term
+
+        activation_fn     - One of the functions defined in TrainingModel.
+                            Options are:
+
+                                * sigmoid
+                                * tanh
+                                * rect_lin
+
+        number_of_epochs  - Interger.  Number of iterations to run
+
+        plot_cost_graph   - A boolean deciding if the cost function should be
+                            plotted, good for debugging.
+
+        number_of_batches - Interger.  The number of batches to train with.  The
+                            larger number the slower the model will train; the
+                            smaller the number, the faster the number of, but
+                            the more ram is used.  This should be between 1 and
+                            the number of examples.
+        '''
 
         self.plot_cost_graph = plot_cost_graph
 
-        # layers should be a list (or np array) of sizes, where each index
-        # represents a layer from left to right, and the number is the number of
-        # nodes
         self.layers = layers
+
         self.number_of_epochs = number_of_epochs
-        # the rate at which we want to perform gradient descent
+
         self.learning_rate = learning_rate
 
-        # X and y should have the same number of examples!
-        assert X.shape[0] == y.shape[0]
+        if X.shape[0] != y.shape[0]:
+            print("number of examples in input does not match number of examples in output!")
+            return
 
-        # regularization parameter.  real number
         self.weight_decay = weight_decay
 
-        # X is expected to be a matrix of shape (examlpes X features)
         self.X = X
 
-        # y is expected to be an array of shape (examples X 1)
         self.y = y
 
         # weights is a list of matricies.  each matrix is of shape (layer X next layer)
@@ -41,7 +76,7 @@ class NeuralNetwork(TrainingModel):
 
         # calculate weights, place these in a list of np arrays
         for layer, next_layer in zip(layers, layers[1:]):
-            self.weights.append(np.random.randn(layer, next_layer))
+            self.weights.append(np.random.randn(layer, next_layer)/100)
 
             # bias value for everything except the output layer
             self.biases.append(np.random.randn(next_layer).reshape(1, next_layer))
@@ -57,8 +92,6 @@ class NeuralNetwork(TrainingModel):
 
         self.number_of_batches = number_of_batches
         self.batch_size = int(np.round(self.X.shape[0]/self.number_of_batches))
-
-        #super(NeuralNetwork, self).__init__()
 
 
     def foward_feed(self, x):
@@ -94,6 +127,9 @@ class NeuralNetwork(TrainingModel):
         compute to cost
         '''
 
+        # TODO: the cost is currently being calculated assuming the logistic
+        # function is being used of activation.  This should be more flexible
+
         # number of examples
         m = self.X.shape[0]
 
@@ -110,6 +146,12 @@ class NeuralNetwork(TrainingModel):
     def back_prop(self, x, y):
         '''
         perform back propigation to updated the weights
+
+        x - numpy array of shape (batch size X #number of features) a batch of
+            inputs to train with
+
+        y - numpy array of shape (batch size X #number of outputs) the batch of
+            corresponding outputs to train with
         '''
 
         # the list of deltas
