@@ -50,6 +50,11 @@ class NeuralNetwork(TrainingModel):
                             the number of examples.
         '''
 
+        # validate inputs
+#        if X.shape[0] != y.shape[0]:
+#            print("number of examples in input does not match number of examples in output!")
+#            return
+
         self.plot_cost_graph = plot_cost_graph
 
         self.layers = layers
@@ -57,10 +62,6 @@ class NeuralNetwork(TrainingModel):
         self.number_of_epochs = number_of_epochs
 
         self.learning_rate = learning_rate
-
-        if X.shape[0] != y.shape[0]:
-            print("number of examples in input does not match number of examples in output!")
-            return
 
         self.weight_decay = weight_decay
 
@@ -76,7 +77,7 @@ class NeuralNetwork(TrainingModel):
 
         # calculate weights, place these in a list of np arrays
         for layer, next_layer in zip(layers, layers[1:]):
-            self.weights.append(np.random.randn(layer, next_layer)/100)
+            self.weights.append(np.random.randn(layer, next_layer))
 
             # bias value for everything except the output layer
             self.biases.append(np.random.randn(next_layer).reshape(1, next_layer))
