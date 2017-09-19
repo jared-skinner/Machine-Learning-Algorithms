@@ -178,7 +178,7 @@ def dumb_example():
     X = np.array([[2,1], [1,3], [4,4]]).reshape(3,2)
     y = np.array([0, 1, 1]).reshape(3,1)
     learning_rate = .1
-    layers = np.array([2, 1, 1])
+    layers = np.array([2, 3, 1])
     weight_decay = 0
     number_of_epochs = 10000
 
@@ -187,10 +187,6 @@ def dumb_example():
     test = np.array([[4, 4]]).reshape(1,2)
     _,_,approx = nn.foward_feed(test)
 #
-    print(approx)
-
-
-
     nn.train_model()
 
     _,_,approx = nn.foward_feed(test)
@@ -198,4 +194,4 @@ def dumb_example():
     print(approx)
 
 if __name__ == "__main__":
-    mnist_test()
+    dumb_example()
