@@ -180,18 +180,20 @@ def dumb_example():
     learning_rate = .1
     layers = np.array([2, 3, 1])
     weight_decay = 0
-    number_of_epochs = 10000
+    number_of_epochs = 1
+    activation_fn = TrainingModel.sigmoid
+    number_of_batches = 1
 
-    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=TrainingModel.sigmoid, number_of_epochs=number_of_epochs, plot_cost_graph=True)
+    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=True, number_of_batches=number_of_batches)
 
     test = np.array([[4, 4]]).reshape(1,2)
-    _,_,approx = nn.foward_feed(test)
+    #_,_,approx = nn.foward_feed(test)
 #
     nn.train_model()
 
     _,_,approx = nn.foward_feed(test)
 
-    print(approx)
+    #print(approx)
 
 if __name__ == "__main__":
     dumb_example()

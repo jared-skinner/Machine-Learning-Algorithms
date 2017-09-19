@@ -96,7 +96,7 @@ class NeuralNetwork(TrainingModel):
 
 
     # TODO: this could be a static method...
-    def foward_feed(self, x, weights = None):
+    def foward_feed(self, x, weights = None, biases = None):
         '''
         given starting values in X, calculate the values of each neuron in the
         neural network in each layer.
@@ -108,6 +108,9 @@ class NeuralNetwork(TrainingModel):
         if weights == None:
             weights = self.weights
 
+        if biases == None:
+            biases = self.biases
+
         # a is the input values of the current layer.  We will start with X
         layer_activations = []
 
@@ -116,7 +119,7 @@ class NeuralNetwork(TrainingModel):
         a = x
         layer_output.append(a)
 
-        for weight, bias in zip(weights, self.biases):
+        for weight, bias in zip(weights, biases):
             z = np.matmul(a, weight) + bias
             a = self.activation_fn(z)
 
@@ -150,54 +153,48 @@ class NeuralNetwork(TrainingModel):
 
 
 
-    def grad_debug(self):
+    def grad_check(self):
         '''
         calculate the gradient using divided differences.  This is to make sure
         the gradient we are using is sane
         '''
         m = self.X.shape[0]
 
-        reg_term = 0
-
-        epislon = .0001
+        epislon = .00001
 
         grads_approx = []
 
+        low_weights = [np.copy(w) for w in self.weights]
+        high_weights = [np.copy(w) for w in self.weights]
+
         for k, weight in enumerate(self.weights):
+
             grad_approx = np.zeros(weight.shape)
-            for i in range(weight.shape[0] - 1):
-                for j in range(weight.shape[1] - 1):
-                    print(weight.shape)
-                    print(i)
-                    print(j)
-                    low_weight = weight
-                    low_weight[i, j] -= epislon
-                    high_weight = weight
-                    high_weight[i, j] += epislon
 
-                    low_weights = self.weights
-                    low_weights[k] = low_weight
-                    high_weights = self.weights
-                    high_weights[k] = high_weight
-
-                    print(low_weights[0])
-
+            for i in range(weight.shape[0]):
+                for j in range(weight.shape[1]):
+                    low_weights[k][i, j] -= epislon
+                    high_weights[k][i, j] += epislon
 
                     reg_term = 0
-                    for weight in low_weights:
-                        reg_term += np.sum(np.power(weight, 2))
-
-                    _, _, y_approx = self.foward_feed(self.X, low_weights)
-                    low_cost = 1/m * np.sum(- self.y * np.log(y_approx) - (1 - self.y) * np.log(1 - y_approx))
+                    for low_weight in low_weights:
+                        reg_term += np.sum(np.power(low_weight, 2))
+                    _, _, low_approx = self.foward_feed(self.X, low_weights)
 
                     reg_term = 0
-                    for weight in high_weights:
-                        reg_term += np.sum(np.power(weight, 2))
+                    for high_weight in high_weights:
+                        reg_term += np.sum(np.power(high_weight, 2))
+                    _, _, high_approx = self.foward_feed(self.X, high_weights)
 
-                    _, _, y_approx = self.foward_feed(self.X, high_weights)
-                    high_cost = 1/m * np.sum(- self.y * np.log(y_approx) - (1 - self.y) * np.log(1 - y_approx))
+                    low_cost = 1/m * np.sum(- self.y * np.log(low_approx) - (1 - self.y) * np.log(1 - low_approx))
+                    high_cost = 1/m * np.sum(- self.y * np.log(high_approx) - (1 - self.y) * np.log(1 - high_approx))
 
-                    grad_approx[i, j] = (high_cost - low_cost) / (2*epislon)
+                    grad_approx[i, j] = (high_cost - low_cost) / (2 * epislon)
+
+                    # re adjust values for next iteration
+                    low_weights[k][i, j] += epislon
+                    high_weights[k][i, j] -= epislon
+
 
             grads_approx.append(grad_approx)
 
@@ -257,22 +254,12 @@ class NeuralNetwork(TrainingModel):
                 self.back_prop(self.X[start_of_batch:end_of_batch,:], self.y[start_of_batch:end_of_batch,:])
                 start_of_batch = start_of_batch + self.batch_size + 1
 
-
-
-
-                grads_approx = self.grad_debug()
-
-
-
+                grads_approx = self.grad_check()
 
                 for j, _ in enumerate(self.weights):
 
                     print(self.grad[j])
                     print(grads_approx[j])
-
-
-
-
 
                     self.weights[j] = self.weights[j] - self.learning_rate * (1/no_exs * self.grad[j] + self.weight_decay * self.weights[j])
                     self.biases[j] = self.biases[j] - self.learning_rate * (1/no_exs * self.bias_grad[j])
