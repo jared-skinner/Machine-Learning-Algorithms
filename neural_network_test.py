@@ -37,7 +37,7 @@ def mnist_test():
     if os.path.isfile("mnist/mnist_test.pickle"):
         with open("mnist/mnist_test.pickle", 'rb') as mnist_pickle:
             pickled_data = pickle.load(mnist_pickle)
-            y_vals, images = pickled_data[0], pickled_data[1]
+            images = pickled_data
     else:
         #with open("mnist/train.csv") as train_results:
         #    for line in train_results:
@@ -58,32 +58,25 @@ def mnist_test():
 
         for path in test_image_paths:
             image = imread(os.path.join("mnist/Images/test", path), flatten=True)
-
             image = np.ndarray.flatten(image)
-
             images.append(image)
 
         images = np.array(images)
 
+        with open("mnist/mnist_test.pickle", 'wb') as mnist_pickle:
+            pickled_data = images
+            pickle.dump(pickled_data, mnist_pickle)
+
     # regularize so we don't saturate the model
     X = images/255
     y = []
-
-    learning_rate =  3
-    layers = np.array([784, 30, 10])
-    weight_decay = 0#.00001
-    number_of_epochs = 1000
     activation_fn = TrainingModel.sigmoid
-    number_of_batches = 1
-
-    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=True, number_of_batches=number_of_batches)
 
     with open("mnist/weights.pickle", 'rb') as mnist_pickle:
-        weights = pickle.load(mnist_pickle)
+        pickle_data = pickle.load(mnist_pickle)
+        weights, biases = pickle_data[0], pickle_data[1]
 
-    nn.weights = weights
-
-    _,_,y_approx = nn.foward_feed(X)
+    _,_,y_approx = NeuralNetwork.foward_feed(X, weights, biases, activation_fn)
 
     total = 0
     total_right = 0
@@ -143,7 +136,7 @@ def mnist_train():
     learning_rate =  3
     layers = np.array([784, 30, 10])
     weight_decay = 0#.00001
-    number_of_epochs = 1000
+    number_of_epochs = 10000
     activation_fn = TrainingModel.sigmoid
     number_of_batches = 1
 
@@ -152,7 +145,8 @@ def mnist_train():
     nn.train_model()
 
     with open("mnist/weights.pickle", 'wb') as mnist_weights_pickle:
-        pickle.dump(nn.weights, mnist_weights_pickle)
+        pickle_data = [nn.weights, nn.biases]
+        pickle.dump(pickle_data, mnist_weights_pickle)
 
     test = np.zeros(784)
     for i in range(X.shape[0]):
@@ -160,7 +154,7 @@ def mnist_train():
         test = X[i]
         actual = y[i]
 
-        _,_,approx = nn.foward_feed(test)
+        _,_,approx = nn.foward_feed(test, nn.weights, nn.biases, activation_fn)
 
         print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
         print("actual: %d" % TrainingModel.one_hot_to_digit(actual))
@@ -177,21 +171,21 @@ def mnist_train():
 def dumb_example():
     X = np.array([[2,1], [1,3], [4,4]]).reshape(3,2)
     y = np.array([0, 1, 1]).reshape(3,1)
-    learning_rate = .1
+    learning_rate = .3
     layers = np.array([2, 3, 1])
     weight_decay = 0
     number_of_epochs = 1
     activation_fn = TrainingModel.sigmoid
     number_of_batches = 1
 
-    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=True, number_of_batches=number_of_batches)
+    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=False, number_of_batches=number_of_batches)
 
     test = np.array([[4, 4]]).reshape(1,2)
-    #_,_,approx = nn.foward_feed(test)
+    #_,_,approx = nn.foward_feed(test, nn.weights, nn.biases, activation_fn)
 #
     nn.train_model()
 
-    _,_,approx = nn.foward_feed(test)
+    _,_,approx = nn.foward_feed(test, nn.weights, nn.biases, activation_fn)
 
     #print(approx)
 

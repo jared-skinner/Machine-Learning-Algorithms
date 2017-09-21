@@ -95,21 +95,14 @@ class NeuralNetwork(TrainingModel):
         self.batch_size = int(np.round(self.X.shape[0]/self.number_of_batches))
 
 
-    # TODO: this could be a static method...
-    def foward_feed(self, x, weights = None, biases = None):
+    @staticmethod
+    def foward_feed(x, weights, biases, activation_fn):
         '''
         given starting values in X, calculate the values of each neuron in the
         neural network in each layer.
 
         returns a list of the neuron values by layer
         '''
-
-        #allow for other weights to be used.
-        if weights == None:
-            weights = self.weights
-
-        if biases == None:
-            biases = self.biases
 
         # a is the input values of the current layer.  We will start with X
         layer_activations = []
@@ -121,7 +114,7 @@ class NeuralNetwork(TrainingModel):
 
         for weight, bias in zip(weights, biases):
             z = np.matmul(a, weight) + bias
-            a = self.activation_fn(z)
+            a = activation_fn(z)
 
             layer_activations.append(z)
             layer_output.append(a)
@@ -146,9 +139,9 @@ class NeuralNetwork(TrainingModel):
         for weight in self.weights:
             reg_term += np.sum(np.power(weight, 2))
 
-        _, _, y_approx = self.foward_feed(self.X)
+        _, _, y_approx = self.foward_feed(self.X, self.weights, self.biases, self.activation_fn)
         #cost = 1/m * np.sum(1/2 * np.power(y_approx - self.y, 2)) + self.weight_decay / 2 * reg_term
-        cost = 1/m * np.sum(- self.y * np.log(y_approx) - (1 - self.y) * np.log(1 - y_approx))
+        cost = - 1/m * np.sum(self.y * np.log(y_approx) + (1 - self.y) * np.log(1 - y_approx))
         return cost
 
 
@@ -160,7 +153,7 @@ class NeuralNetwork(TrainingModel):
         '''
         m = self.X.shape[0]
 
-        epislon = .00001
+        epislon = .0001
 
         grads_approx = []
 
@@ -176,25 +169,27 @@ class NeuralNetwork(TrainingModel):
                     low_weights[k][i, j] -= epislon
                     high_weights[k][i, j] += epislon
 
-                    reg_term = 0
+                    low_reg_term = 0
                     for low_weight in low_weights:
-                        reg_term += np.sum(np.power(low_weight, 2))
-                    _, _, low_approx = self.foward_feed(self.X, low_weights)
+                        low_reg_term += np.sum(np.power(low_weight, 2))
+                    _, _, low_approx = self.foward_feed(self.X, low_weights, self.biases, self.activation_fn)
 
-                    reg_term = 0
+                    high_reg_term = 0
                     for high_weight in high_weights:
-                        reg_term += np.sum(np.power(high_weight, 2))
-                    _, _, high_approx = self.foward_feed(self.X, high_weights)
+                        high_reg_term += np.sum(np.power(high_weight, 2))
+                    _, _, high_approx = self.foward_feed(self.X, high_weights, self.biases, self.activation_fn)
 
-                    low_cost = 1/m * np.sum(- self.y * np.log(low_approx) - (1 - self.y) * np.log(1 - low_approx))
-                    high_cost = 1/m * np.sum(- self.y * np.log(high_approx) - (1 - self.y) * np.log(1 - high_approx))
+                    #low_cost = 1/(2*m) * np.sum(1/2 * np.power(low_approx - self.y, 2)) + self.weight_decay / 2 * low_reg_term
+                    #high_cost = 1/(2*m) * np.sum(1/2 * np.power(high_approx - self.y, 2)) + self.weight_decay / 2 * high_reg_term
+
+                    low_cost = -1/m * np.sum(self.y * np.log(low_approx) + (1 - self.y) * np.log(1 - low_approx))# + self.weight_decay / 2 * low_reg_term
+                    high_cost = -1/m * np.sum(self.y * np.log(high_approx) + (1 - self.y) * np.log(1 - high_approx))# + self.weight_decay / 2 * high_reg_term
 
                     grad_approx[i, j] = (high_cost - low_cost) / (2 * epislon)
 
                     # re adjust values for next iteration
                     low_weights[k][i, j] += epislon
                     high_weights[k][i, j] -= epislon
-
 
             grads_approx.append(grad_approx)
 
@@ -212,14 +207,30 @@ class NeuralNetwork(TrainingModel):
             corresponding outputs to train with
         '''
 
-        # the list of deltas
-        delta = [None] * len(self.layers)
-        grad = [None] * (len(self.layers) - 1)
+        print("x")
+        print(x)
+
+
+        # the list of deltas.  There is one for every layer
+        delta     = [None] * len(self.layers)
+
+        # the list of gradients.  There is one for every weight
+        grad      = [None] * (len(self.layers) - 1)
+
+        # the list of the bias gradients.  There is one for every bias
         bias_grad = [None] * (len(self.layers) - 1)
 
-        z, a, _ = self.foward_feed(x)
+        # get the set of activations a and outputs z.
+        #
+        # the first a = X.  the subsequent a's are computed.  There will be an a
+        # for every layer
+        #
+        # the z's are computed from the a's.  The last a is not used to compute
+        # z, however, so there is a z for every layer except for first one (the
+        # first z belongs to the second layer).
+        z, a, _ = self.foward_feed(x, self.weights, self.biases, self.activation_fn)
 
-        # pad z's to match number of layers
+        # pad z's to since there is no z for the first layer
         z.insert(0, None)
 
         # shorthand for clarity
@@ -229,7 +240,7 @@ class NeuralNetwork(TrainingModel):
         n = len(self.layers) - 1
 
         # calculate the gradient of the output layer
-        delta[n] = -(y - a[n])# * self.activation_fn_prime(z[n])
+        delta[n] = (a[n] - y) * self.activation_fn_prime(z[n])
 
         for l in range(n - 1, 0, -1):
             delta[l] = np.matmul(delta[l + 1] , W[l].T) * self.activation_fn_prime(z[l])
@@ -243,26 +254,41 @@ class NeuralNetwork(TrainingModel):
 
 
     def train_model(self):
-        no_exs = self.X.shape[0]
+        m = self.X.shape[0]
 
         for epoch in range(self.number_of_epochs):
             start_of_batch = 0
+
+            # verify gradient is correct.  commented out on purpose
+            grads_approx = self.grad_check()
+
             for i in range(self.number_of_batches):
 
-                end_of_batch = min(start_of_batch + self.batch_size, self.X.shape[0] - 1)
+                end_of_batch = min(start_of_batch + self.batch_size, self.X.shape[0])
+
+                print("start_of_batch")
+                print(start_of_batch)
+                print("end_of_batch")
+                print(end_of_batch)
 
                 self.back_prop(self.X[start_of_batch:end_of_batch,:], self.y[start_of_batch:end_of_batch,:])
-                start_of_batch = start_of_batch + self.batch_size + 1
-
-                grads_approx = self.grad_check()
+                start_of_batch = start_of_batch + self.batch_size
 
                 for j, _ in enumerate(self.weights):
 
+                    print("self.grad")
                     print(self.grad[j])
+
+                    print("grads_approx")
                     print(grads_approx[j])
 
-                    self.weights[j] = self.weights[j] - self.learning_rate * (1/no_exs * self.grad[j] + self.weight_decay * self.weights[j])
-                    self.biases[j] = self.biases[j] - self.learning_rate * (1/no_exs * self.bias_grad[j])
+                    print("difference")
+                    print(self.grad[j] - grads_approx[j])
+
+                    self.weights[j] = self.weights[j] - self.learning_rate * (1/m * self.grad[j] + self.weight_decay * self.weights[j])
+                    self.biases[j] = self.biases[j] - self.learning_rate * (1/m * self.bias_grad[j])
+                    #self.weights[j] = self.weights[j] - self.learning_rate * (1/m * grads_approx[j] + self.weight_decay * self.weights[j])
+                    #self.biases[j] = self.biases[j] - self.learning_rate * (1/m * self.bias_grad[j])
 
             if self.plot_cost_graph:
                 if epoch % np.ceil(self.number_of_epochs/100) == 0:
