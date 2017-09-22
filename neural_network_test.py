@@ -136,12 +136,12 @@ def mnist_train():
     learning_rate = 3
     layers = np.array([784, 35, 10])
     weight_decay = 0#.00001
-    number_of_epochs = 10
+    number_of_epochs = 150
     activation_fn = TrainingModel.sigmoid
-    number_of_batches = 200
+    batch_size = 100
     plot_cost_graph = False
 
-    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=plot_cost_graph, number_of_batches=number_of_batches)
+    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=plot_cost_graph, batch_size=batch_size)
 
     nn.train_model()
 
@@ -160,9 +160,9 @@ def mnist_train():
 
         _,_,approx = nn.foward_feed(test, nn.weights, nn.biases, activation_fn)
 
-        #print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
-        #print("actual: %d" % TrainingModel.one_hot_to_digit(actual))
-        #print("\n")
+        print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
+        print("actual: %d" % TrainingModel.one_hot_to_digit(actual))
+        print("\n")
 
         if TrainingModel.one_hot_to_digit(approx) == TrainingModel.one_hot_to_digit(actual):
             correct += 1

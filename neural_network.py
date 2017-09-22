@@ -9,7 +9,7 @@ class NeuralNetwork(TrainingModel):
     basic foward feed neural network
     '''
 
-    def __init__(self, layers, X, y, learning_rate = 1, weight_decay = 0, activation_fn=TrainingModel.sigmoid, number_of_epochs=10, plot_cost_graph=False, number_of_batches=10):
+    def __init__(self, layers, X, y, learning_rate = 1, weight_decay = 0, activation_fn=TrainingModel.sigmoid, number_of_epochs=10, plot_cost_graph=False, batch_size=100):
         '''
         inputs:
 
@@ -92,8 +92,8 @@ class NeuralNetwork(TrainingModel):
         self.activation_fn = activation_fn
         self.activation_fn_prime = derivative_dict[activation_fn]
 
-        self.number_of_batches = number_of_batches
-        self.batch_size = int(np.round(self.X.shape[0]/self.number_of_batches))
+        self.batch_size = batch_size
+        self.number_of_batches = int(np.round(self.X.shape[0]/self.batch_size))
 
 
     @staticmethod
