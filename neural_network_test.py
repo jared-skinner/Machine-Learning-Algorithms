@@ -9,7 +9,7 @@ import os
 import pickle
 
 
-
+PLOT_IMAGES = 0
 
 
 
@@ -67,7 +67,7 @@ def mnist_test():
             pickled_data = images
             pickle.dump(pickled_data, mnist_pickle)
 
-    # regularize so we don't saturate the model
+    # normalize so we don't saturate the model
     X = images/255
     y = []
     activation_fn = TrainingModel.sigmoid
@@ -133,14 +133,15 @@ def mnist_train():
     X = images/255
     y = y_vals
 
-    learning_rate =  3
-    layers = np.array([784, 30, 10])
+    learning_rate = 3
+    layers = np.array([784, 35, 10])
     weight_decay = 0#.00001
-    number_of_epochs = 100
+    number_of_epochs = 10
     activation_fn = TrainingModel.sigmoid
-    number_of_batches = 1
+    number_of_batches = 200
+    plot_cost_graph = False
 
-    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=True, number_of_batches=number_of_batches)
+    nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=plot_cost_graph, number_of_batches=number_of_batches)
 
     nn.train_model()
 
@@ -149,6 +150,9 @@ def mnist_train():
         pickle.dump(pickle_data, mnist_weights_pickle)
 
     test = np.zeros(784)
+
+    total = 0
+    correct = 0
     for i in range(X.shape[0]):
 
         test = X[i]
@@ -156,16 +160,23 @@ def mnist_train():
 
         _,_,approx = nn.foward_feed(test, nn.weights, nn.biases, activation_fn)
 
-        print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
-        print("actual: %d" % TrainingModel.one_hot_to_digit(actual))
-        print("\n")
+        #print("approx: %d" % TrainingModel.one_hot_to_digit(approx))
+        #print("actual: %d" % TrainingModel.one_hot_to_digit(actual))
+        #print("\n")
 
-        # plot the image
-        plt.imshow(images[i].reshape(28, 28))
-        plt.show()
+        if TrainingModel.one_hot_to_digit(approx) == TrainingModel.one_hot_to_digit(actual):
+            correct += 1
 
-        if i == 100:
-            break
+        total += 1
+
+        if PLOT_IMAGES:
+            # plot the image
+            plt.imshow(images[i].reshape(28, 28))
+            plt.show()
+
+    accuracy = np.divide(correct, total) * 100
+
+    print("\ntraining accuracy: %f%%" % accuracy)
 
 
 def dumb_example():

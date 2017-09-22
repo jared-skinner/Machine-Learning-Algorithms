@@ -122,6 +122,9 @@ class NeuralNetwork(TrainingModel):
 
         y_approx = a
 
+        # update last layer
+        layer_output[-1] = y_approx
+
         return layer_activations, layer_output, y_approx
 
 
@@ -146,7 +149,7 @@ class NeuralNetwork(TrainingModel):
         #cost = 1/m * np.sum(1/2 * np.power(y_approx - self.y, 2)) + self.weight_decay / 2 * reg_term
 
         # cross entropy cost function
-        cost = - 1/m * np.sum(self.y * np.log(y_approx) + (1 - self.y) * np.log(1 - y_approx))
+        cost = - 1/m * np.sum(self.y * np.log(y_approx) + (1 - self.y) * np.log(1 - y_approx)) + self.weight_decay/(2*m) * reg_term
         return cost
 
 

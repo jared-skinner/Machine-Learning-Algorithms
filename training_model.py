@@ -74,6 +74,14 @@ class TrainingModel:
         return X > 0
 
 
+    def softmax(X):
+        '''
+        implementation of the softmax funxtion
+        '''
+        e = np.exp(X)
+        return e / np.sum(e)
+
+
     def shuffle_data(self):
         '''
         shuffle X and y data for better training
