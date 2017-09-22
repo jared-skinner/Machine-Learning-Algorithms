@@ -2,10 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from training_model import TrainingModel
 
+DEBUG_GRAD = 0
 
 class NeuralNetwork(TrainingModel):
     '''
-    basic neural network
+    basic foward feed neural network
     '''
 
     def __init__(self, layers, X, y, learning_rate = 1, weight_decay = 0, activation_fn=TrainingModel.sigmoid, number_of_epochs=10, plot_cost_graph=False, number_of_batches=10):
@@ -140,10 +141,13 @@ class NeuralNetwork(TrainingModel):
             reg_term += np.sum(np.power(weight, 2))
 
         _, _, y_approx = self.foward_feed(self.X, self.weights, self.biases, self.activation_fn)
+
+        # quadratic cost function
         #cost = 1/m * np.sum(1/2 * np.power(y_approx - self.y, 2)) + self.weight_decay / 2 * reg_term
+
+        # cross entropy cost function
         cost = - 1/m * np.sum(self.y * np.log(y_approx) + (1 - self.y) * np.log(1 - y_approx))
         return cost
-
 
 
     def grad_check(self):
@@ -179,11 +183,9 @@ class NeuralNetwork(TrainingModel):
                         high_reg_term += np.sum(np.power(high_weight, 2))
                     _, _, high_approx = self.foward_feed(self.X, high_weights, self.biases, self.activation_fn)
 
-                    #low_cost = 1/(2*m) * np.sum(1/2 * np.power(low_approx - self.y, 2)) + self.weight_decay / 2 * low_reg_term
-                    #high_cost = 1/(2*m) * np.sum(1/2 * np.power(high_approx - self.y, 2)) + self.weight_decay / 2 * high_reg_term
-
-                    low_cost = -1/m * np.sum(self.y * np.log(low_approx) + (1 - self.y) * np.log(1 - low_approx))# + self.weight_decay / 2 * low_reg_term
-                    high_cost = -1/m * np.sum(self.y * np.log(high_approx) + (1 - self.y) * np.log(1 - high_approx))# + self.weight_decay / 2 * high_reg_term
+                    # TODO: add weight decay into these calculations
+                    low_cost = - np.sum(self.y * np.log(low_approx) + (1 - self.y) * np.log(1 - low_approx)) #+ self.weight_decay / 2 * low_reg_term
+                    high_cost = - np.sum(self.y * np.log(high_approx) + (1 - self.y) * np.log(1 - high_approx)) #+ self.weight_decay / 2 * high_reg_term
 
                     grad_approx[i, j] = (high_cost - low_cost) / (2 * epislon)
 
@@ -206,10 +208,6 @@ class NeuralNetwork(TrainingModel):
         y - numpy array of shape (batch size X #number of outputs) the batch of
             corresponding outputs to train with
         '''
-
-        print("x")
-        print(x)
-
 
         # the list of deltas.  There is one for every layer
         delta     = [None] * len(self.layers)
@@ -239,8 +237,13 @@ class NeuralNetwork(TrainingModel):
         # number of layers - 1 since we are indexing starting at 0
         n = len(self.layers) - 1
 
-        # calculate the gradient of the output layer
-        delta[n] = (a[n] - y) * self.activation_fn_prime(z[n])
+        m = x.shape[0]
+
+        # delta to be used when using quadratic error function
+        #delta[n] = (a[n] - y) * self.activation_fn_prime(z[n])
+
+        # delta to be used when using cross entropy function
+        delta[n] = 1/m * (a[n] - y)
 
         for l in range(n - 1, 0, -1):
             delta[l] = np.matmul(delta[l + 1] , W[l].T) * self.activation_fn_prime(z[l])
@@ -259,36 +262,31 @@ class NeuralNetwork(TrainingModel):
         for epoch in range(self.number_of_epochs):
             start_of_batch = 0
 
-            # verify gradient is correct.  commented out on purpose
-            grads_approx = self.grad_check()
+            if DEBUG_GRAD > 0:
+                # verify gradient is correct.  commented out on purpose
+                grads_approx = self.grad_check()
 
             for i in range(self.number_of_batches):
 
                 end_of_batch = min(start_of_batch + self.batch_size, self.X.shape[0])
-
-                print("start_of_batch")
-                print(start_of_batch)
-                print("end_of_batch")
-                print(end_of_batch)
 
                 self.back_prop(self.X[start_of_batch:end_of_batch,:], self.y[start_of_batch:end_of_batch,:])
                 start_of_batch = start_of_batch + self.batch_size
 
                 for j, _ in enumerate(self.weights):
 
-                    print("self.grad")
-                    print(self.grad[j])
+                    if DEBUG_GRAD > 0:
+                        print("\nself.grad")
+                        print(self.grad[j])
 
-                    print("grads_approx")
-                    print(grads_approx[j])
+                        print("\ngrads_approx")
+                        print(grads_approx[j])
 
-                    print("difference")
-                    print(self.grad[j] - grads_approx[j])
+                        print("\ndifference")
+                        print(self.grad[j] - grads_approx[j])
 
-                    self.weights[j] = self.weights[j] - self.learning_rate * (1/m * self.grad[j] + self.weight_decay * self.weights[j])
-                    self.biases[j] = self.biases[j] - self.learning_rate * (1/m * self.bias_grad[j])
-                    #self.weights[j] = self.weights[j] - self.learning_rate * (1/m * grads_approx[j] + self.weight_decay * self.weights[j])
-                    #self.biases[j] = self.biases[j] - self.learning_rate * (1/m * self.bias_grad[j])
+                    self.weights[j] = self.weights[j] - self.learning_rate * ( self.grad[j] + self.weight_decay * self.weights[j])
+                    self.biases[j] = self.biases[j] - self.learning_rate * ( self.bias_grad[j])
 
             if self.plot_cost_graph:
                 if epoch % np.ceil(self.number_of_epochs/100) == 0:
