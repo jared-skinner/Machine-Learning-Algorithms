@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from neural_network import NeuralNetwork
+from foward_feed_neural_network import NeuralNetwork
 from training_model import TrainingModel
 
 from scipy.misc import imread
@@ -134,8 +134,8 @@ def mnist_train():
     y = y_vals
 
     learning_rate = 3
-    layers = np.array([784, 35, 10])
-    weight_decay = 10
+    layers = np.array([784, 500, 500, 10])
+    weight_decay = 0
     number_of_epochs = 10
     activation_fn = TrainingModel.sigmoid
     batch_size = 100
@@ -201,4 +201,4 @@ def dumb_example():
     #print(approx)
 
 if __name__ == "__main__":
-    mnist_train()
+    mnist_test()
