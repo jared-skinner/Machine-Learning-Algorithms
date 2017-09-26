@@ -120,7 +120,9 @@ class NeuralNetwork(TrainingModel):
             layer_activations.append(z)
             layer_output.append(a)
 
-        y_approx = a
+        # replace our final a with softmax(z).  This way our values fall into a
+        # distribution
+        y_approx = TrainingModel.softmax(z)
 
         # update last layer
         layer_output[-1] = y_approx
@@ -288,7 +290,8 @@ class NeuralNetwork(TrainingModel):
                         print("\ndifference")
                         print(self.grad[j] - grads_approx[j])
 
-                    self.weights[j] = self.weights[j] - self.learning_rate * ( self.grad[j] + self.weight_decay * self.weights[j])
+                    # TODO: check that the weight decay term is correct here
+                    self.weights[j] = (1 - self.learning_rate * self.weight_decay / m) * self.weights[j] - self.learning_rate * self.grad[j]
                     self.biases[j] = self.biases[j] - self.learning_rate * ( self.bias_grad[j])
 
             if self.plot_cost_graph:

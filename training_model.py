@@ -79,7 +79,10 @@ class TrainingModel:
         implementation of the softmax funxtion
         '''
         e = np.exp(X)
-        return e / np.sum(e)
+
+        # it's silly, but we need to do a reshape after the sum to keep the
+        # matrix-like apperance in the denominator
+        return e / np.sum(e, axis=1).reshape(e.shape[0], 1)
 
 
     def shuffle_data(self):
