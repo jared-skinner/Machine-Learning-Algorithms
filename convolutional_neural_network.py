@@ -7,7 +7,48 @@ class ConvNerualNet(TrainingModel):
     '''
 
     def __init__(self):
+
+
+        # generate filters for each convolutional layers
+
+
         pass
+
+
+
+
+    def cost(self):
+        pass
+
+
+
+
+
+
+    def back_prop(self):
+        pass
+
+
+    def foward_feed(self):
+
+        #loop through architecture
+
+
+
+        # apply fully connected layer
+
+
+
+        # output array of categories
+
+
+        pass
+
+
+    def pool(self):
+        pass
+
+
 
 
     def apply_filter(self, X, filter, stride):
@@ -63,7 +104,4 @@ if __name__ == "__main__":
     # x will be a volume with dimensions width X height X channels
 
     main()
-
-
-
 
