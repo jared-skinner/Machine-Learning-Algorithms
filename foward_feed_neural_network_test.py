@@ -129,14 +129,16 @@ def mnist_train():
         with open("mnist/mnist_train.pickle", 'wb') as mnist_pickle:
             pickle.dump(pickled_data, mnist_pickle)
 
-    # regularize so we don't saturate the model
+    # TODO: regularize so we don't saturate the model
     X = images/255
     y = y_vals
 
     learning_rate = 3
-    layers = np.array([784, 500, 500, 10])
+    layers = np.array([784, 50, 50, 10])
     weight_decay = 0
     number_of_epochs = 10
+
+    # TODO: get relu to work
     activation_fn = TrainingModel.sigmoid
     batch_size = 100
     plot_cost_graph = False
@@ -186,7 +188,7 @@ def dumb_example():
     layers = np.array([2, 3, 1])
     weight_decay = 0
     number_of_epochs = 10
-    activation_fn = TrainingModel.sigmoid
+    activation_fn = TrainingModel.relu
     number_of_batches = 3
 
     nn = NeuralNetwork(layers=layers, X=X, y=y, learning_rate=learning_rate, weight_decay=weight_decay, activation_fn=activation_fn, number_of_epochs=number_of_epochs, plot_cost_graph=False, number_of_batches=number_of_batches)
@@ -201,4 +203,4 @@ def dumb_example():
     #print(approx)
 
 if __name__ == "__main__":
-    mnist_test()
+    mnist_train()

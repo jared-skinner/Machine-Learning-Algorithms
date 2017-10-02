@@ -59,7 +59,7 @@ class TrainingModel:
 
 
     @staticmethod
-    def rect_lin(X):
+    def relu(X):
         '''
         vectorized version of the rectifier linear function
         '''
@@ -67,7 +67,7 @@ class TrainingModel:
 
 
     @staticmethod
-    def rect_lin_prime(X):
+    def relu_prime(X):
         '''
         vectorized version of the derivative of the rectifier linear function
         '''

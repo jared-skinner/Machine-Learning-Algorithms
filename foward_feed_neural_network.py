@@ -37,7 +37,7 @@ class NeuralNetwork(TrainingModel):
 
                                 * sigmoid
                                 * tanh
-                                * rect_lin
+                                * relu
 
         number_of_epochs  - Interger.  Number of iterations to run
 
@@ -78,7 +78,9 @@ class NeuralNetwork(TrainingModel):
 
         # calculate weights, place these in a list of np arrays
         for layer, next_layer in zip(layers, layers[1:]):
-            self.weights.append(np.random.randn(layer, next_layer))
+
+            # use xavier initialization
+            self.weights.append(1/np.power(layer, 1/2) * np.random.randn(layer, next_layer))
 
             # bias value for everything except the output layer
             self.biases.append(np.random.randn(next_layer).reshape(1, next_layer))
@@ -87,7 +89,7 @@ class NeuralNetwork(TrainingModel):
         self.grad = []
 
         # map of functions and their deratives
-        derivative_dict = {self.tanh: self.tanh_prime, self.sigmoid: self.sigmoid_prime, self.rect_lin: self.rect_lin_prime}
+        derivative_dict = {self.tanh: self.tanh_prime, self.sigmoid: self.sigmoid_prime, self.relu: self.relu_prime}
 
         self.activation_fn = activation_fn
         self.activation_fn_prime = derivative_dict[activation_fn]

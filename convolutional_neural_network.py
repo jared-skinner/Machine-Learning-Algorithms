@@ -23,8 +23,6 @@ class ConvNerualNet(TrainingModel):
 
 
 
-
-
     def back_prop(self):
         pass
 
@@ -45,10 +43,19 @@ class ConvNerualNet(TrainingModel):
         pass
 
 
-    def pool(self):
-        pass
+    def max_pool(self, pool_x, pool_y, X, stride):
+        '''
+        implementation of a max pool
+        '''
+        # verify the pool deminsions are evenly divisible across the input.
 
 
+        for i in range(X.shape[0]):
+            for j in range(X.shape[1]):
+                for k in range(X.shape[2]):
+                    result[i/stride, j/stride, k] = np.max(X[i:i+pool_x,j:j+pool_x,k])
+
+        return result
 
 
     def apply_filter(self, X, filter, stride):
