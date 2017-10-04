@@ -25,8 +25,8 @@ y = Variable(torch.from_numpy(y_vals).type(torch.LongTensor), requires_grad=Fals
 #weight_decay = 0
 
 batch_size    = 100
-epochs        = 100
-learning_rate = 1e-3
+epochs        = 20
+learning_rate = 3e-4
 
 number_of_batches = int(np.round(x.data.shape[0]/batch_size))
 
@@ -35,8 +35,10 @@ number_of_batches = int(np.round(x.data.shape[0]/batch_size))
 # these are either 0 or 1, followed by softmax)
 model = torch.nn.Sequential(
     torch.nn.Linear(x.data.shape[1], 50),
+    torch.nn.BatchNorm1d(50),
     torch.nn.ReLU(),
     torch.nn.Linear(50, 50),
+    torch.nn.BatchNorm1d(50),
     torch.nn.ReLU(),
     torch.nn.Linear(50, y.data.shape[1]),
 )
@@ -54,6 +56,7 @@ for epoch in range(epochs):
     # TODO: Functionalize batching processing
     start_of_batch = 0
 
+    total_loss = 0
     for batch in range(number_of_batches):
         end_of_batch = min(start_of_batch + batch_size, x.data.shape[0])
         x_batch, y_batch = x[start_of_batch:end_of_batch,:], y[start_of_batch:end_of_batch,:]
@@ -71,7 +74,12 @@ for epoch in range(epochs):
 
         optimizer.step()
 
-    print("epoch: %d, loss: %f" % (epoch + 1, loss.data[0]))
+        total_loss += loss.data[0]
+
+    # Average out losses
+    total_loss = total_loss/number_of_batches
+
+    print("epoch: %d, loss: %f" % (epoch + 1, total_loss))
 
 
 # TODO: get test accuracy as well
