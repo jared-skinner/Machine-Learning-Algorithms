@@ -24,6 +24,10 @@ class Net(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=5, padding=1)
         self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, padding=1)
 
+        self.batch_norm1 = nn.BatchNorm2d(16)
+        self.batch_norm2 = nn.BatchNorm2d(32)
+        self.batch_norm3 = nn.BatchNorm1d(50)
+
         self.relu = nn.ReLU()
 
         self.pool = nn.MaxPool2d(2)
@@ -32,20 +36,22 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        # TODO: use a sane architecture
         x = self.conv1(x)
         x = self.pool(x)
         x = self.relu(x)
+        x = self.batch_norm1(x)
 
         x = self.conv2(x)
         x = self.pool(x)
         x = self.relu(x)
+        x = self.batch_norm2(x)
 
         # reshape so we can use a fully connected layer
         x = x.view(-1, 1152)
 
         x = self.fc1(x)
         x = self.relu(x)
+        x = self.batch_norm3(x)
 
         x = self.fc2(x)
         x = F.log_softmax(x)
@@ -94,12 +100,26 @@ def main():
     for epoch in range(epochs):
         start_of_batch = 0
         total_loss = 0
+        total = 0
+        total_right = 0
         for batch in range(number_of_batches):
             end_of_batch = min(start_of_batch + batch_size, x.data.shape[0])
             x_batch, y_batch = x[start_of_batch:end_of_batch], y[start_of_batch:end_of_batch]
             start_of_batch = start_of_batch + batch_size
 
             y_pred = model(x_batch)
+
+            # calculate training accuracy
+            _, y_pred_max = torch.max(y_pred, 1)
+
+            for guess, actual in zip(y_pred_max, y_batch):
+                guess = guess.data[0]
+                actual = actual.data[0]
+
+                total += 1
+                if guess == actual:
+                    total_right += 1
+
 
             loss = loss_fn(y_pred, y_batch)
 
@@ -112,30 +132,12 @@ def main():
             optimizer.step()
 
 
+        accuracy = total_right/total
+        print("train accuracy: %f" % accuracy)
+
         print("\nepoch:          %d" % (epoch + 1))
         print("loss:           %f" % total_loss)
 
-        total = 0
-        total_right = 0
-        start_of_batch = 0
-        for batch in range(number_of_batches):
-            end_of_batch = min(start_of_batch + batch_size, x.data.shape[0])
-            x_batch, y_batch = x[start_of_batch:end_of_batch], y[start_of_batch:end_of_batch]
-            start_of_batch = start_of_batch + batch_size
-
-            _, y_pred = torch.max(model(x_batch), 1)
-
-            for guess, actual in zip(y_pred, y_batch):
-                guess = guess.data[0]
-                actual = actual.data[0]
-
-                total += 1
-                if guess == actual:
-                    total_right += 1
-
-        accuracy = total_right/total
-
-        print("train accuracy: %f" % accuracy)
 
         # test, but only after training is complete...
 
