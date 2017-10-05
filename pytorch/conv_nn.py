@@ -9,8 +9,30 @@ calssification on the CIFAR-10 dataset:
 
 import torch
 from torch.autograd import Variable
+import torch.nn.functional as F
+from torch import nn
 import pickle
 import numpy as np
+
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=5, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, padding=1)
+
+        self.fc1 = nn.Linear(1152, 50)
+        self.fc2 = nn.Linear(50, 10)
+
+    def forward(self, x):
+        # TODO: use a sane architecture
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 1152)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return F.log_softmax(x)
 
 
 def get_training_data():
@@ -25,43 +47,54 @@ def main():
     # import images/labels
     dict = get_training_data()
 
+    epochs = 100
+    learning_rate = 1e-3
+
+    batch_size = 1000
+
+
     y = dict[b'labels']
-    X = dict[b'data']
+    x = dict[b'data']
 
-    X = torch.from_numpy(X).view([10000, 32, 32, 3]).type(torch.FloatTensor).permute(0,3,1,2)
+    number_of_batches = int(np.round(x.data.shape[0]/batch_size))
 
-    # batch this!
-    X = X[0:1000]
+    y = torch.Tensor(y).type(torch.LongTensor)
+    x = torch.from_numpy(x).view([10000, 32, 32, 3]).type(torch.FloatTensor).permute(0,3,1,2)
 
-    X = Variable(X)
+    # permute changes the size to 10000 X 3 X 32 X 32
 
-    # TODO: use a sane architecture
-    # define model
-    model = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels=3, out_channels=10, kernel_size=3),
-            torch.nn.BatchNorm2d(10),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=3),
-            torch.nn.Conv2d(in_channels=10, out_channels=10, kernel_size=3),
-    )
+    x = Variable(x)
+    y = Variable(y, requires_grad=False)
 
-    A = Variable(torch.randn(100, 3, 32, 32))
 
-    model(X)
+    model = Net()
 
+    loss_fn = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     # train
+    for epoch in range(epochs):
+        start_of_batch = 0
+        for batch in range(number_of_batches):
+            end_of_batch = min(start_of_batch + batch_size, x.data.shape[0])
+            x_batch, y_batch = x[start_of_batch:end_of_batch], y[start_of_batch:end_of_batch]
+            start_of_batch = start_of_batch + batch_size
 
+            y_pred = model(x_batch)
+
+            loss = loss_fn(y_pred, y_batch)
+
+            optimizer.zero_grad()
+
+            loss.backward()
+
+            optimizer.step()
+
+            print(loss.data[0])
+
+        # test, but only after training is complete...
 
     # cross validate
-
-
-    # test, but only after training is complete...
-
-
-
-
-
 
 if __name__ == "__main__":
     main()
