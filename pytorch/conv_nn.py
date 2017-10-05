@@ -112,8 +112,8 @@ def main():
             optimizer.step()
 
 
-        print("\epoch:           %d" % epoch)
-        print("\nloss:           %f" % total_loss)
+        print("\nepoch:          %d" % epoch + 1)
+        print("loss:           %f" % total_loss)
 
         total = 0
         total_right = 0
