@@ -15,24 +15,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
-class Net(nn.Module):
+class BasicCNN(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(BasicCNN, self).__init__()
 
         # define types of layers
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=5, padding=1)
-        self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, padding=1)
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=5, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, padding=1)
 
-        self.batch_norm1 = nn.BatchNorm2d(16)
-        self.batch_norm2 = nn.BatchNorm2d(32)
-        self.batch_norm3 = nn.BatchNorm1d(50)
+        self.batch_norm1 = nn.BatchNorm2d(32)
+        self.batch_norm2 = nn.BatchNorm2d(64)
+        self.batch_norm3 = nn.BatchNorm1d(64)
+        self.batch_norm4 = nn.BatchNorm1d(50)
 
         self.relu = nn.ReLU()
 
         self.pool = nn.MaxPool2d(2)
 
-        self.fc1 = nn.Linear(1152, 50)
+        self.fc1 = nn.Linear(576, 50)
         self.fc2 = nn.Linear(50, 10)
 
         self.log_softmax = nn.LogSoftmax()
@@ -49,12 +50,17 @@ class Net(nn.Module):
         x = self.relu(x)
         x = self.batch_norm2(x)
 
+        x = self.conv3(x)
+        x = self.pool(x)
+        x = self.relu(x)
+        x = self.batch_norm3(x)
+
         # reshape so we can use a fully connected layer
-        x = x.view(-1, 1152)
+        x = x.view(-1, 576)
 
         x = self.fc1(x)
         x = self.relu(x)
-        x = self.batch_norm3(x)
+        x = self.batch_norm4(x)
 
         x = self.fc2(x)
         x = self.log_softmax(x)
@@ -84,26 +90,26 @@ def load_data():
     # Training data
 
     # import images/labels
-    with open("/home/jared/cifar-10-batches-py/data_batch_1", 'rb') as fo:
-        train_dict = pickle.load(fo, encoding='bytes')
+    with open("/home/jared/cifar-10-batches-py/data_batch_1", 'rb') as batch_1:
+        train_dict = pickle.load(batch_1, encoding='bytes')
 
     train_x = train_dict[b'data']
     train_y = train_dict[b'labels']
 
-    with open("/home/jared/cifar-10-batches-py/data_batch_2", 'rb') as fo:
-        train_dict = pickle.load(fo, encoding='bytes')
+    with open("/home/jared/cifar-10-batches-py/data_batch_2", 'rb') as batch_2:
+        train_dict = pickle.load(batch_2, encoding='bytes')
 
     train_x = np.concatenate((train_x, train_dict[b'data']), axis=0)
     train_y += train_dict[b'labels']
 
-    with open("/home/jared/cifar-10-batches-py/data_batch_3", 'rb') as fo:
-        train_dict = pickle.load(fo, encoding='bytes')
+    with open("/home/jared/cifar-10-batches-py/data_batch_3", 'rb') as batch_3:
+        train_dict = pickle.load(batch_3, encoding='bytes')
 
     train_x = np.concatenate((train_x, train_dict[b'data']), axis=0)
     train_y += train_dict[b'labels']
 
-    with open("/home/jared/cifar-10-batches-py/data_batch_4", 'rb') as fo:
-        train_dict = pickle.load(fo, encoding='bytes')
+    with open("/home/jared/cifar-10-batches-py/data_batch_4", 'rb') as batch_4:
+        train_dict = pickle.load(batch_4, encoding='bytes')
 
     train_x = np.concatenate((train_x, train_dict[b'data']), axis=0)
     train_y += train_dict[b'labels']
@@ -132,35 +138,35 @@ def load_data():
 
 
 def main():
-
-    epochs = 10
+    # setup model
+    epochs        = 100
     learning_rate = 1e-3
-    batch_size = 300
+    weight_decay  = 1e-1
+    batch_size    = 300
+    model         = BasicCNN()
+    loss_fn       = torch.nn.CrossEntropyLoss()
+    optimizer     = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    plot          = False
 
-    model = Net()
-
-    loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=.1)
-
+    # get data
     train_x, train_y, cross_x, cross_y = load_data()
 
-
     # Initialize plot stuff
-    epoch_list          = []
-    loss_list           = []
-    train_accuracy_list = []
-    cross_accuracy_list = []
+    if plot:
+        epoch_list          = []
+        loss_list           = []
+        train_accuracy_list = []
+        cross_accuracy_list = []
 
-    loss_plot = plt.figure()
-    accuracy_plot = plt.figure()
+        loss_plot = plt.figure()
+        accuracy_plot = plt.figure()
 
-    # axis
-    loss_ax = loss_plot.gca()
-    accuracy_ax = accuracy_plot.gca()
+        # axis
+        loss_ax = loss_plot.gca()
+        accuracy_ax = accuracy_plot.gca()
 
-    loss_plot.show()
-    accuracy_plot.show()
-
+        loss_plot.show()
+        accuracy_plot.show()
 
     # train
     for epoch in range(epochs):
@@ -224,12 +230,13 @@ def main():
         print("\nepoch:                      %d" % (epoch + 1))
         print("loss:                       %f" % total_loss)
 
-        epoch_list.append(epoch)
-        loss_list.append(total_loss)
-        train_accuracy_list.append(train_accuracy)
-        cross_accuracy_list.append(cross_accuracy)
+        # plot loss graph and accuracy graphs
+        if plot:
+            epoch_list.append(epoch)
+            loss_list.append(total_loss)
+            train_accuracy_list.append(train_accuracy)
+            cross_accuracy_list.append(cross_accuracy)
 
-        for i in range(10):
             loss_ax.plot(epoch_list, loss_list, 'r')
             loss_plot.canvas.draw()
 
@@ -239,6 +246,7 @@ def main():
 
 
     # test, but only after training is complete...
+    # TODO: create a function for this
 
 if __name__ == "__main__":
     main()
