@@ -8,11 +8,11 @@ calssification on the CIFAR-10 dataset:
 '''
 
 import torch
-from torch.autograd import Variable
-import torch.nn.functional as F
 from torch import nn
+from torch.autograd import Variable
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 
@@ -35,6 +35,9 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(1152, 50)
         self.fc2 = nn.Linear(50, 10)
 
+        self.log_softmax = nn.LogSoftmax()
+
+
     def forward(self, x):
         x = self.conv1(x)
         x = self.pool(x)
@@ -54,58 +57,146 @@ class Net(nn.Module):
         x = self.batch_norm3(x)
 
         x = self.fc2(x)
-        x = F.log_softmax(x)
+        x = self.log_softmax(x)
 
         return x
 
 
-def get_training_data():
-    with open("/home/jared/cifar-10-batches-py/data_batch_1", 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
+# a generator to return batch beginning and ending points
+def batch_iter(batch_size, set_size):
+    set_size = set_size
+    batch_size = batch_size
+    number_of_batches = int(np.round(set_size/batch_size))
 
-    return dict
+    start_of_batch = 0
+
+    end_of_batch = 0
+
+    while end_of_batch < set_size:
+        end_of_batch = min(start_of_batch + batch_size, set_size)
+
+        yield start_of_batch, end_of_batch
+
+        start_of_batch = start_of_batch + batch_size
+
+
+def load_data():
+    # Training data
+
+    # import images/labels
+    with open("/home/jared/cifar-10-batches-py/data_batch_1", 'rb') as fo:
+        train_dict = pickle.load(fo, encoding='bytes')
+
+    train_x = train_dict[b'data']
+    train_y = train_dict[b'labels']
+
+    with open("/home/jared/cifar-10-batches-py/data_batch_2", 'rb') as fo:
+        train_dict = pickle.load(fo, encoding='bytes')
+
+    train_x = np.concatenate((train_x, train_dict[b'data']), axis=0)
+    train_y += train_dict[b'labels']
+
+    with open("/home/jared/cifar-10-batches-py/data_batch_3", 'rb') as fo:
+        train_dict = pickle.load(fo, encoding='bytes')
+
+    train_x = np.concatenate((train_x, train_dict[b'data']), axis=0)
+    train_y += train_dict[b'labels']
+
+    with open("/home/jared/cifar-10-batches-py/data_batch_4", 'rb') as fo:
+        train_dict = pickle.load(fo, encoding='bytes')
+
+    train_x = np.concatenate((train_x, train_dict[b'data']), axis=0)
+    train_y += train_dict[b'labels']
+
+    train_x = torch.from_numpy(train_x).view([40000, 32, 32, 3]).type(torch.FloatTensor).permute(0,3,1,2)
+    train_y = torch.Tensor(train_y).type(torch.LongTensor)
+
+    train_x = Variable(train_x)
+    train_y = Variable(train_y, requires_grad=False)
+
+
+    # Cross vaildation data
+    with open("/home/jared/cifar-10-batches-py/data_batch_5", 'rb') as fo:
+        cross_dict = pickle.load(fo, encoding='bytes')
+
+    cross_x = cross_dict[b'data']
+    cross_y = cross_dict[b'labels']
+
+    cross_x = torch.from_numpy(cross_x).view([10000, 32, 32, 3]).type(torch.FloatTensor).permute(0,3,1,2)
+    cross_y = torch.Tensor(cross_y).type(torch.LongTensor)
+
+    cross_x = Variable(cross_x)
+    cross_y = Variable(cross_y, requires_grad=False)
+
+    return train_x, train_y, cross_x, cross_y
 
 
 def main():
 
-    # import images/labels
-    dict = get_training_data()
-
-    epochs = 200
+    epochs = 10
     learning_rate = 1e-3
-
-    batch_size = 500
-
-
-    y = dict[b'labels']
-    x = dict[b'data']
-
-    number_of_batches = int(np.round(x.data.shape[0]/batch_size))
-
-    y = torch.Tensor(y).type(torch.LongTensor)
-    x = torch.from_numpy(x).view([10000, 32, 32, 3]).type(torch.FloatTensor).permute(0,3,1,2)
-
-    # permute changes the size to 10000 X 3 X 32 X 32
-
-    x = Variable(x)
-    y = Variable(y, requires_grad=False)
-
+    batch_size = 300
 
     model = Net()
 
     loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=.1)
+
+    train_x, train_y, cross_x, cross_y = load_data()
+
+
+    # Initialize plot stuff
+    epoch_list          = []
+    loss_list           = []
+    train_accuracy_list = []
+    cross_accuracy_list = []
+
+    loss_plot = plt.figure()
+    accuracy_plot = plt.figure()
+
+    # axis
+    loss_ax = loss_plot.gca()
+    accuracy_ax = accuracy_plot.gca()
+
+    loss_plot.show()
+    accuracy_plot.show()
+
 
     # train
     for epoch in range(epochs):
-        start_of_batch = 0
         total_loss = 0
-        total = 0
-        total_right = 0
-        for batch in range(number_of_batches):
-            end_of_batch = min(start_of_batch + batch_size, x.data.shape[0])
-            x_batch, y_batch = x[start_of_batch:end_of_batch], y[start_of_batch:end_of_batch]
-            start_of_batch = start_of_batch + batch_size
+        train_total = 0
+        train_total_right = 0
+
+        batches = batch_iter(batch_size, train_x.data.shape[0])
+        for start_of_batch, end_of_batch in batches:
+            x_batch, y_batch = train_x[start_of_batch:end_of_batch], train_y[start_of_batch:end_of_batch]
+            y_pred = model(x_batch)
+
+            # calculate training accuracy
+            _, y_pred_max = torch.max(y_pred, 1)
+
+            for guess, actual in zip(y_pred_max, y_batch):
+                guess = guess.data[0]
+                actual = actual.data[0]
+
+                train_total += 1
+                if guess == actual:
+                    train_total_right += 1
+
+            loss = loss_fn(y_pred, y_batch)
+            total_loss += loss.data[0]
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        # test on cross validation set
+        cross_total = 0
+        cross_total_right = 0
+        batches = batch_iter(batch_size, cross_x.data.shape[0])
+        for start_of_batch, end_of_batch in batches:
+
+            x_batch, y_batch = cross_x[start_of_batch:end_of_batch], cross_y[start_of_batch:end_of_batch]
 
             y_pred = model(x_batch)
 
@@ -116,32 +207,38 @@ def main():
                 guess = guess.data[0]
                 actual = actual.data[0]
 
-                total += 1
+                cross_total += 1
                 if guess == actual:
-                    total_right += 1
+                    cross_total_right += 1
 
 
-            loss = loss_fn(y_pred, y_batch)
+        # print helpful info at the end of the epoch.  train accuracy belongs to
+        # the previous iteration.  just didn't want to have to calculate it
+        # twice
+        train_accuracy = train_total_right/train_total
+        print("train accuracy:             %.2f%%" % (train_accuracy * 100))
 
-            total_loss += loss.data[0]
+        cross_accuracy = cross_total_right/cross_total
+        print("cross validation accuracy:  %.2f%%" % (cross_accuracy * 100))
 
-            optimizer.zero_grad()
+        print("\nepoch:                      %d" % (epoch + 1))
+        print("loss:                       %f" % total_loss)
 
-            loss.backward()
+        epoch_list.append(epoch)
+        loss_list.append(total_loss)
+        train_accuracy_list.append(train_accuracy)
+        cross_accuracy_list.append(cross_accuracy)
 
-            optimizer.step()
+        for i in range(10):
+            loss_ax.plot(epoch_list, loss_list, 'r')
+            loss_plot.canvas.draw()
+
+            # TODO: figure out how to add legends
+            accuracy_ax.plot(epoch_list, train_accuracy_list, 'g', epoch_list, cross_accuracy_list, 'b')
+            accuracy_plot.canvas.draw()
 
 
-        accuracy = total_right/total
-        print("train accuracy: %f" % accuracy)
-
-        print("\nepoch:          %d" % (epoch + 1))
-        print("loss:           %f" % total_loss)
-
-
-        # test, but only after training is complete...
-
-    # cross validate
+    # test, but only after training is complete...
 
 if __name__ == "__main__":
     main()
